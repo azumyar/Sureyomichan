@@ -49,9 +49,10 @@ jobs:
         echo $jsonOutput > .\src\cs-sureyomichan\dist\chrome-extensions\manifest.json
 
     - name: Create Artifact Zip
-      pushd src\cs-sureyomichan
-      run: Compress-Archive -Path dist -DestinationPath "sureyomichan-${{github.ref_name}}.zip"
-      popd
+      run: |
+        pushd src\cs-sureyomichan
+        Compress-Archive -Path dist -DestinationPath "sureyomichan-${{github.ref_name}}.zip"
+        popd
 
     - name: Pre Release
       uses: softprops/action-gh-release@v2
