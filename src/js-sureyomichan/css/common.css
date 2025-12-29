@@ -1,0 +1,102 @@
+body {
+  background: #FFFFEE;
+  color: #800000;
+  text-align:center;
+}
+h1 {
+  margin:2px 0;
+}
+
+fieldset {
+  border: 1px solid #000000;
+  padding: 2px;
+}
+
+table {
+   table-layout: fixed;
+   width: 100%;
+}
+
+input[type="text"],
+input[type="range"],
+input[type="button"],
+img {
+  vertical-align:middle;
+}
+input[type="checkbox"]{
+  margin: 1px;
+  vertical-align:-0.19em;
+}
+input[type="number"],
+input[type="text"] {
+  text-align: right;
+}
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+.mute , .unmute {
+  width: 24px;
+  height: 24px;
+  cursor: pointer;
+  margin-left:-24px;
+}
+.mute:hover, .unmute:hover {
+  opacity: 0.7 ;
+}
+
+
+.orderSpan{
+  width: 14px;
+  text-align:center;
+}
+
+
+.inlineBlock {
+  display:inline-block;
+}
+.table {
+  display: table;
+  width: 100%;
+}
+
+.vTop {
+  vertical-align:top;
+}
+.vMiddle {
+  vertical-align:middle;
+}
+
+.textLeft {
+  text-align:left;
+}
+.textRight {
+  text-align:right;
+}
+.textCenter {
+  text-align:center;
+}
+
+.left {
+  clear: both;
+  float: left;
+}
+
+.w100p {width: 100%;}
+.w90p  {width:  90%;}
+.w70p  {width:  70%;}
+.w60p  {width:  60%;}
+.w50p  {width:  50%;}
+.w40p  {width:  40%;}
+.w30p  {width:  30%;}
+.w20p  {width:  20%;}
+.w15p  {width:  15%;}
+
+@keyframes hurue1 {
+    0% {transform: translate(0px, 0px)}
+    25% {transform: translate(3px, 3px)}
+    50% {transform: translate(0px, 3px)}
+    75% {transform: translate(3px, 0px)}
+    100% {transform: translate(0px, 0px)}
+}

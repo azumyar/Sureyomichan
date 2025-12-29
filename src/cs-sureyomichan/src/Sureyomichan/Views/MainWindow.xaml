@@ -1,0 +1,1078 @@
+<Window
+    x:Name="_this"
+    x:Class="Haru.Kei.SureyomiChan.Views.MainWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
+    xmlns:ri="clr-namespace:Reactive.Bindings.Interactivity;assembly=ReactiveProperty.WPF"
+    xmlns:l="http://schemas.livet-mvvm.net/2011/wpf" 
+    xmlns:material="http://materialdesigninxaml.net/winfx/xaml/themes"
+    xmlns:metro="http://metro.mahapps.com/winfx/xaml/controls"
+    xmlns:wv2="clr-namespace:Microsoft.Web.WebView2.Wpf;assembly=Microsoft.Web.WebView2.Wpf"
+    xmlns:b="clr-namespace:Haru.Kei.SureyomiChan.Behaviors"
+    xmlns:local="clr-namespace:Haru.Kei.SureyomiChan.Views"
+    mc:Ignorable="d"
+    Title="スレ詠みちゃん" Height="450" Width="800">
+    <i:Interaction.Triggers>
+        <i:EventTrigger EventName="Loaded">
+            <ri:EventToReactiveCommand Command="{Binding LoadedCommand, Mode=OneWay}" />
+        </i:EventTrigger>
+        <i:EventTrigger EventName="Closed">
+            <ri:EventToReactiveCommand Command="{Binding ClosedCommand, Mode=OneWay}" />
+        </i:EventTrigger>
+
+        <!-- Confirmationに対応 -->
+        <l:InteractionMessageTrigger Messenger="{Binding LivetMessenger}" MessageKey="Confirmation" >
+            <l:ConfirmationDialogInteractionMessageAction/>
+        </l:InteractionMessageTrigger>
+        <!-- Informationに対応 -->
+        <l:InteractionMessageTrigger Messenger="{Binding LivetMessenger}" MessageKey="Information" >
+            <l:InformationDialogInteractionMessageAction/>
+        </l:InteractionMessageTrigger>
+        <!-- OpenFileに対応 -->
+        <l:InteractionMessageTrigger Messenger="{Binding LivetMessenger}" MessageKey="OpenFile" >
+            <l:OpenFileDialogInteractionMessageAction/>
+        </l:InteractionMessageTrigger>
+        <!-- SaveFileに対応 -->
+        <l:InteractionMessageTrigger Messenger="{Binding LivetMessenger}" MessageKey="SaveFile" >
+            <l:SaveFileDialogInteractionMessageAction/>
+        </l:InteractionMessageTrigger>
+    </i:Interaction.Triggers>
+    <Grid>
+        <wv2:WebView2
+            Width="1"
+            Height="1"
+            Visibility="Hidden">
+
+            <i:Interaction.Triggers>
+                <i:EventTrigger EventName="Loaded">
+                    <ri:EventToReactiveCommand Command="{Binding WebViewLoadedCommand, Mode=OneWay}" />
+                </i:EventTrigger>
+            </i:Interaction.Triggers>
+        </wv2:WebView2>
+
+        <ScrollViewer Visibility="{Binding ConfigPageVisibility.Value, Mode=OneWay}">
+            <Border Padding="16" DataContext="{Binding BindableConfig.Value}">
+                <Border.Resources>
+                    <DataTemplate x:Key="Data1">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="56" />
+                                <RowDefinition Height="56" />
+                            </Grid.RowDefinitions>
+
+                            <TextBox
+                                x:Name="FloderPath"
+                                Grid.Row="1"
+                                Visibility="Collapsed"
+                                VerticalAlignment="Center"
+                                material:HintAssist.Hint="{Binding HelpText.Value, Mode=OneWay}"
+                                Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                                Text="{Binding Input.Value, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                />
+                            
+                            <ToggleButton
+                                Grid.Row="0"
+                                x:Name="OnOffToggle"
+                                Style="{StaticResource MaterialDesignSwitchLightToggleButton}"
+                                HorizontalAlignment="Right"
+                                VerticalAlignment="Center"
+                                ToolTip="MaterialDesignSwitchLightToggleButton"
+                                IsChecked="{Binding IsChecked.Value, Mode=TwoWay}">
+                                <i:Interaction.Triggers>
+                                    <i:DataTrigger Binding="{Binding IsChecked, ElementName=OnOffToggle}" Value="false" Comparison="Equal">
+                                        <i:ChangePropertyAction TargetName="FloderPath" PropertyName="Visibility" Value="Collapsed" />
+                                    </i:DataTrigger>
+                                    <i:DataTrigger Binding="{Binding IsChecked, ElementName=OnOffToggle}" Value="true" Comparison="Equal">
+                                        <i:ChangePropertyAction TargetName="FloderPath" PropertyName="Visibility" Value="Visible" />
+                                    </i:DataTrigger>
+                                </i:Interaction.Triggers>
+                            </ToggleButton>
+                        </Grid>
+                    </DataTemplate>
+                    
+                    <DataTemplate x:Key="YomiageComponentKey">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="56" />
+                                <RowDefinition Height="56" />
+                            </Grid.RowDefinitions>
+
+                            <Grid
+                                x:Name="SoundFile"
+                                Grid.Column="1"
+                                Grid.Row="1">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="56" />
+                                </Grid.ColumnDefinitions>
+                                <TextBox
+                                    material:HintAssist.Hint="対応音声ファイル"
+                                    Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                                    Text="{Binding File.Value, Mode=TwoWay}"
+                                    />
+                                <Button
+                                    Grid.Column="1"
+                                    Style="{StaticResource MaterialDesignOutlinedButton}"
+                                    material:ButtonAssist.CornerRadius="10"
+                                    Height="56"
+                                    Margin="4,0,0,0">
+                                    <Button.Content>
+                                        <Viewbox>
+                                            <material:PackIcon Kind="FileMusicOutline" />
+                                        </Viewbox>
+                                    </Button.Content>
+
+                                    <i:Interaction.Triggers>
+                                        <i:EventTrigger EventName="Click">
+                                            <l:OpenFileDialogInteractionMessageAction>
+                                                <l:DirectInteractionMessage CallbackCommand="{Binding SoundOpenCommand}">
+                                                    <l:OpeningFileSelectionMessage Filter="サウンドファイル(*.wav)|*.wav|すべてのファイル(*.*)|*.*" Title="ファイルを開く" MultiSelect="False"/>
+                                                </l:DirectInteractionMessage>
+                                            </l:OpenFileDialogInteractionMessageAction>
+                                        </i:EventTrigger>
+                                    </i:Interaction.Triggers>
+                                </Button>
+                            </Grid>                            
+                            
+                            <TextBox
+                                x:Name="BouyomiText"
+                                Grid.Row="1"
+                                Visibility="Collapsed"
+                                VerticalAlignment="Center"
+                                material:HintAssist.Hint="読み上げテキスト"
+                                Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                                Text="{Binding Text.Value, Mode=TwoWay}"
+                                />
+
+                            <ComboBox
+                                x:Name="YomiageMethod"
+                                Grid.Row="0"
+                                Style="{StaticResource MaterialDesignOutlinedComboBox}"
+                                MinWidth="160"
+                                HorizontalAlignment="Right"
+                                material:HintAssist.Hint="Some item"
+                                SelectedIndex="{Binding Method.Value, Mode=TwoWay}">
+                                <ComboBoxItem Content="OFF" />
+                                <ComboBoxItem Content="音声ファイル" />
+                                <ComboBoxItem Content="棒読みちゃん" />
+
+                                <i:Interaction.Triggers>
+                                    <i:DataTrigger Binding="{Binding SelectedIndex, ElementName=YomiageMethod}" Value="0" Comparison="Equal">
+                                        <i:ChangePropertyAction TargetName="SoundFile" PropertyName="Visibility" Value="Collapsed" />
+                                        <i:ChangePropertyAction TargetName="BouyomiText" PropertyName="Visibility" Value="Collapsed" />
+                                    </i:DataTrigger>
+                                    <i:DataTrigger Binding="{Binding SelectedIndex, ElementName=YomiageMethod}" Value="1" Comparison="Equal">
+                                        <i:ChangePropertyAction TargetName="SoundFile" PropertyName="Visibility" Value="Visible" />
+                                        <i:ChangePropertyAction TargetName="BouyomiText" PropertyName="Visibility" Value="Collapsed" />
+                                    </i:DataTrigger>
+                                    <i:DataTrigger Binding="{Binding SelectedIndex, ElementName=YomiageMethod}" Value="2" Comparison="Equal">
+                                        <i:ChangePropertyAction TargetName="SoundFile" PropertyName="Visibility" Value="Collapsed" />
+                                        <i:ChangePropertyAction TargetName="BouyomiText" PropertyName="Visibility" Value="Visible" />
+                                    </i:DataTrigger>
+                                </i:Interaction.Triggers>
+                            </ComboBox>
+                        </Grid>
+                    </DataTemplate>
+                </Border.Resources>
+
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="8" />
+                        <RowDefinition Height="Auto" />
+
+                        <RowDefinition Height="36" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="4" />
+                        <RowDefinition Height="Auto" />
+
+                        <RowDefinition Height="36" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="4" />
+                        <RowDefinition Height="Auto" />
+
+                        <RowDefinition Height="36" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="4" />
+                        <RowDefinition Height="Auto" />
+
+                        <RowDefinition Height="36" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="4" />
+                        <RowDefinition Height="Auto" />
+
+                        <RowDefinition Height="36" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="4" />
+                        <RowDefinition Height="Auto" />
+
+                        <RowDefinition Height="36" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="4" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+
+                    <TextBlock
+                        Grid.Row="0"
+                        Style="{StaticResource MaterialDesignHeadline4TextBlock}"
+                        Text="スレ詠みちゃん"
+                        />
+                    <Button
+                        Grid.Row="0"
+                        Style="{StaticResource MaterialDesignIconButton}"
+                        HorizontalAlignment="Right"
+                        VerticalAlignment="Center"
+                        >
+                        <material:PackIcon Kind="CloseCircleOutline" />
+
+
+                        <i:Interaction.Triggers>
+                            <i:EventTrigger EventName="Click">
+                                <ri:EventToReactiveCommand Command="{Binding DataContext.SaveConfigCommand, Mode=OneWay, ElementName=_this}" />
+                            </i:EventTrigger>
+                        </i:Interaction.Triggers>
+                    </Button>
+
+                    <TextBlock
+                        Grid.Row="2"
+                        Visibility="{Binding InitialSettingVisibility.Value, Mode=OneWay}"
+                        Style="{StaticResource MaterialDesignBody1TextBlock}"
+                        Text="初期設定を行ってください"
+                        TextWrapping="Wrap"
+                        />
+
+
+                    <StackPanel Grid.Row="4" Orientation="Horizontal">
+                        <Viewbox Width="28" Height="28" Stretch="Uniform">
+                            <material:PackIcon Kind="Image" />
+                        </Viewbox>
+                        <TextBlock
+                            Style="{StaticResource MaterialDesignHeadline6TextBlock}"
+                            Text="画像保存"
+                            TextWrapping="Wrap"
+                            />
+                    </StackPanel>
+                    <material:Card
+                        Grid.Row="6"
+                        Style="{StaticResource MaterialDesignOutlinedCard}"
+                        Padding="8">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="260" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition MinHeight="56" />
+                                <RowDefinition MinHeight="56" />
+                                <RowDefinition MinHeight="56" />
+                                <RowDefinition MinHeight="56" />
+                                <RowDefinition MinHeight="56" />
+                                <RowDefinition MinHeight="56" />
+                                <RowDefinition MinHeight="56" />
+                                <RowDefinition MinHeight="56" />
+                                <RowDefinition MinHeight="56" />
+                                <RowDefinition MinHeight="56" />
+                                <RowDefinition MinHeight="56" />
+                            </Grid.RowDefinitions>
+
+                            <TextBlock
+                                Grid.Column="0"
+                                Grid.Row="0"
+                                Style="{StaticResource MaterialDesignBody1TextBlock}"
+                                VerticalAlignment="Center"
+                                Text="保存フォルダ"
+                                />
+                            <Grid Grid.Column="1" Grid.Row="0">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="56" />
+                                </Grid.ColumnDefinitions>
+                                <TextBox
+                                    material:HintAssist.Hint="手書き保存先フォルダパス"
+                                    Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                                    Text="{Binding PathDwonload.Value, Mode=TwoWay}"
+                                    />
+                                <Button
+                                    Grid.Column="1"
+                                    Style="{StaticResource MaterialDesignOutlinedButton}"
+                                    material:ButtonAssist.CornerRadius="10"
+                                    Height="56"
+                                    Margin="4,0,0,0">
+                                    <Button.Content>
+                                        <Viewbox>
+                                            <material:PackIcon Kind="FolderOpenOutline" />
+                                        </Viewbox>
+                                    </Button.Content>
+
+                                    <i:Interaction.Triggers>
+                                        <i:EventTrigger EventName="Click">
+                                            <l:FolderBrowserDialogInteractionMessageAction>
+                                                <l:DirectInteractionMessage CallbackCommand="{Binding DownloadFolderSelectCommand}">
+                                                    <l:FolderSelectionMessage Description="フォルダーの選択" DialogPreference="None" />
+                                                </l:DirectInteractionMessage>
+                                            </l:FolderBrowserDialogInteractionMessageAction>
+                                        </i:EventTrigger>
+                                    </i:Interaction.Triggers>
+                                </Button>
+                            </Grid>
+
+                            <Separator
+                                Grid.Column="0" Grid.ColumnSpan="2"
+                                Grid.Row="1"
+                                Margin="16,8,16,8"
+                                Style="{StaticResource MaterialDesignDarkSeparator}" />
+
+                            <TextBlock
+                                Grid.Column="0"
+                                Grid.Row="2"
+                                Style="{StaticResource MaterialDesignBody1TextBlock}"
+                                VerticalAlignment="Top"
+                                Text="サブフォルダ名"
+                                TextWrapping="Wrap"
+                                />
+                            <TextBox
+                                Grid.Column="1"
+                                Grid.Row="2"
+                                VerticalAlignment="Center"
+                                material:HintAssist.Hint="サブフォルダ名($Threadでスレッド番号に置き換えられます)"
+                                Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                                Text="{Binding SaveSubFolderName.Value, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                />
+
+                            <TextBlock
+                                Grid.Column="0"
+                                Grid.Row="3"
+                                Style="{StaticResource MaterialDesignBody1TextBlock}"
+                                VerticalAlignment="Top"
+                                Text="元ファイル(添付ファイル)を保存する"
+                                TextWrapping="Wrap"
+                                />
+                            <ToggleButton
+                                Grid.Column="1"
+                                Grid.Row="3"
+                                Style="{StaticResource MaterialDesignSwitchLightToggleButton}"
+                                HorizontalAlignment="Right"
+                                VerticalAlignment="Center"
+                                ToolTip="MaterialDesignSwitchLightToggleButton"
+                                IsChecked="{Binding IsSaveAttachmentFile.Value, Mode=TwoWay}"
+                                />
+
+                            <TextBlock
+                                Grid.Column="0"
+                                Grid.Row="4"
+                                Style="{StaticResource MaterialDesignBody1TextBlock}"
+                                VerticalAlignment="Top"
+                                Text="あぷ/あぷ小のファイルを保存する"
+                                TextWrapping="Wrap"
+                                />
+                            <ToggleButton
+                                Grid.Column="1"
+                                Grid.Row="4"
+                                Style="{StaticResource MaterialDesignSwitchLightToggleButton}"
+                                HorizontalAlignment="Right"
+                                VerticalAlignment="Center"
+                                ToolTip="MaterialDesignSwitchLightToggleButton"
+                                IsChecked="{Binding IsSaveUpFile.Value, Mode=TwoWay}"
+                                />
+
+                            <Separator
+                                Grid.Column="0" Grid.ColumnSpan="2"
+                                Grid.Row="5"
+                                Margin="16,8,16,8"
+                                Style="{StaticResource MaterialDesignDarkSeparator}" />
+
+                            <TextBlock
+                                Grid.Column="0"
+                                Grid.Row="6"
+                                Style="{StaticResource MaterialDesignBody1TextBlock}"
+                                VerticalAlignment="Top"
+                                Text="スレッドNoのtxtを保存する"
+                                TextWrapping="Wrap"
+                                />
+                            <ToggleButton
+                                Grid.Column="1"
+                                Grid.Row="6"
+                                Style="{StaticResource MaterialDesignSwitchLightToggleButton}"
+                                HorizontalAlignment="Right"
+                                VerticalAlignment="Center"
+                                IsChecked="{Binding SaveThreadNo.Value, Mode=TwoWay}"
+                                />
+
+                            <TextBlock
+                                Grid.Column="0"
+                                Grid.Row="7"
+                                Style="{StaticResource MaterialDesignBody1TextBlock}"
+                                VerticalAlignment="Top"
+                                Text="スレが落ちたらtxtを変える"
+                                TextWrapping="Wrap"
+                                />
+                            <ContentPresenter
+                                Grid.Column="1"
+                                Grid.Row="7"
+                                Content="{Binding ChangeThreadNoTxt}"
+                                ContentTemplate="{StaticResource Data1}"
+                                />
+
+                            <Separator
+                                Grid.Column="0" Grid.ColumnSpan="2"
+                                Grid.Row="8"
+                                Margin="16,8,16,8"
+                                Style="{StaticResource MaterialDesignDarkSeparator}" />
+
+                            <TextBlock
+                                Grid.Column="0"
+                                Grid.Row="9"
+                                Style="{StaticResource MaterialDesignBody1TextBlock}"
+                                VerticalAlignment="Top"
+                                Text="手書きローテ―ト時間"
+                                TextWrapping="Wrap"
+                                />
+                            <TextBox
+                                Grid.Column="1"
+                                Grid.Row="9"
+                                VerticalAlignment="Top"
+                                material:HintAssist.Hint="時間(秒)"
+                                Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                                Text="{Binding TegakiRotateTime.Value, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                />
+                            <TextBlock
+                                Grid.Column="0"
+                                Grid.Row="10"
+                                Style="{StaticResource MaterialDesignBody1TextBlock}"
+                                VerticalAlignment="Top"
+                                Text="一定時間で手書きを消す"
+                                TextWrapping="Wrap"
+                                />
+                            <ToggleButton
+                                Grid.Column="1"
+                                Grid.Row="10"
+                                Style="{StaticResource MaterialDesignSwitchLightToggleButton}"
+                                HorizontalAlignment="Right"
+                                VerticalAlignment="Center"
+                                IsChecked="{Binding TegakiRemove.Value, Mode=TwoWay}"
+                                />
+                        </Grid>
+                    </material:Card>
+
+                    <StackPanel Grid.Row="8" Orientation="Horizontal">
+                        <Viewbox Width="28" Height="28" Stretch="Uniform">
+                            <material:PackIcon Kind="AccountVoiceOutline" />
+                        </Viewbox>
+                        <TextBlock
+                            Style="{StaticResource MaterialDesignHeadline6TextBlock}"
+                            Text="読み上げ"
+                            TextWrapping="Wrap"
+                            />
+                    </StackPanel>
+                    <material:Card
+                        Grid.Row="10"
+                        Style="{StaticResource MaterialDesignOutlinedCard}"
+                        Padding="8">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="260" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition MinHeight="56" />
+                                <RowDefinition MinHeight="56" />
+                                <RowDefinition MinHeight="56" />
+                                <RowDefinition MinHeight="56" />
+                                <RowDefinition MinHeight="56" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition MinHeight="56" />
+                                <RowDefinition MinHeight="56" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="56" />
+                            </Grid.RowDefinitions>
+
+                            <TextBlock
+                                Grid.Column="0"
+                                Grid.Row="0"
+                                Style="{StaticResource MaterialDesignBody1TextBlock}"
+                                VerticalAlignment="Top"
+                                Text="読み上げ開始"
+                                TextWrapping="Wrap"
+                                />
+                            <ContentPresenter
+                                Grid.Column="1"
+                                Grid.Row="0"
+                                Content="{Binding YomiageStarted}"
+                                ContentTemplate="{StaticResource YomiageComponentKey}"
+                                />
+
+
+                            <TextBlock
+                                Grid.Column="0"
+                                Grid.Row="1"
+                                Style="{StaticResource MaterialDesignBody1TextBlock}"
+                                VerticalAlignment="Top"
+                                Text="手書き保存"
+                                TextWrapping="Wrap"
+                                />
+                            <ContentPresenter
+                                Grid.Column="1"
+                                Grid.Row="1"
+                                Content="{Binding YomiageSaveTegaki}"
+                                ContentTemplate="{StaticResource YomiageComponentKey}"
+                                />
+
+                            <TextBlock
+                                Grid.Column="0"
+                                Grid.Row="2"
+                                Style="{StaticResource MaterialDesignBody1TextBlock}"
+                                VerticalAlignment="Top"
+                                Text="スレ落ち警告"
+                                TextWrapping="Wrap"
+                                />
+
+                            <StackPanel
+                                Grid.Column="1"
+                                Grid.Row="2"
+                                Orientation="Vertical">
+                                <ContentPresenter
+                                    Content="{Binding YomiageOld}"
+                                    ContentTemplate="{StaticResource YomiageComponentKey}"
+                                    />
+
+                                <TextBox
+                                    VerticalAlignment="Top"
+                                    material:HintAssist.Hint="時間(分)"
+                                    Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                                    Text="{Binding YomiageOldTime.Value, Mode=TwoWay}"
+                                    />
+                            </StackPanel>
+
+                            <TextBlock
+                                Grid.Column="0"
+                                Grid.Row="3"
+                                Style="{StaticResource MaterialDesignBody1TextBlock}"
+                                VerticalAlignment="Top"
+                                Text="スレ落ち報告"
+                                TextWrapping="Wrap"
+                                />
+                            <ContentPresenter
+                                Grid.Column="1"
+                                Grid.Row="3"
+                                Content="{Binding YomiageDie}"
+                                ContentTemplate="{StaticResource YomiageComponentKey}"
+                                />
+
+                            <TextBlock
+                                Grid.Column="0"
+                                Grid.Row="4"
+                                Style="{StaticResource MaterialDesignBody1TextBlock}"
+                                VerticalAlignment="Top"
+                                Text="スレ落ちリマインド"
+                                TextWrapping="Wrap"
+                                />
+                            <TextBlock
+                                Grid.Column="1"
+                                Grid.Row="4"
+                                Style="{StaticResource MaterialDesignBody1TextBlock}"
+                                HorizontalAlignment="Right"
+                                VerticalAlignment="Center"
+                                >
+                                <Hyperlink IsEnabled="False">
+                                    未実装
+                                </Hyperlink>
+                            </TextBlock>
+
+                            <Separator
+                                Grid.Column="0" Grid.ColumnSpan="2"
+                                Grid.Row="5"
+                                Margin="16,8,16,8"
+                                Style="{StaticResource MaterialDesignDarkSeparator}" />
+
+                            <TextBlock
+                                Grid.Column="0"
+                                Grid.Row="6"
+                                Style="{StaticResource MaterialDesignBody1TextBlock}"
+                                VerticalAlignment="Center"
+                                Text="レス文章に付ける特殊タグ"
+                                TextWrapping="Wrap"
+                                />
+                            <TextBox
+                                Grid.Column="1"
+                                Grid.Row="6"
+                                VerticalAlignment="Top"
+                                material:HintAssist.Hint="指定なしの場合空欄"
+                                Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                                Text="{Binding AppendSpecialTag.Value, Mode=TwoWay}"
+                                />
+
+                            <TextBlock
+                                Grid.Column="0"
+                                Grid.Row="7"
+                                Style="{StaticResource MaterialDesignBody1TextBlock}"
+                                VerticalAlignment="Center"
+                                Text="IDのレスを読み上げない"
+                                />
+                            <ToggleButton
+                                Grid.Column="1"
+                                Grid.Row="7"
+                                Style="{StaticResource MaterialDesignSwitchLightToggleButton}"
+                                HorizontalAlignment="Right"
+                                VerticalAlignment="Center"
+                                IsChecked="{Binding NonReadId.Value, Mode=TwoWay}"
+                                />
+
+                            <Separator
+                                Grid.Column="0" Grid.ColumnSpan="2"
+                                Grid.Row="8"
+                                Margin="16,8,16,8"
+                                Style="{StaticResource MaterialDesignDarkSeparator}" />
+
+                            <TextBlock
+                                Grid.Column="0"
+                                Grid.Row="9"
+                                Style="{StaticResource MaterialDesignBody1TextBlock}"
+                                VerticalAlignment="Center"
+                                Text="棒読みちゃん連携ポート"
+                                TextWrapping="Wrap"
+                                />
+                            <TextBox
+                                Grid.Column="1"
+                                Grid.Row="9"
+                                VerticalAlignment="Top"
+                                material:HintAssist.Hint="デフォルトは50080"
+                                Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                                Text="{Binding BouyomiChanPort.Value, Mode=TwoWay}"
+                                />
+                        </Grid>
+                    </material:Card>
+
+                    <StackPanel Grid.Row="12" Orientation="Horizontal">
+                        <Viewbox Width="28" Height="28" Stretch="Uniform">
+                            <material:PackIcon Kind="SproutOutline" />
+                        </Viewbox>
+                        <TextBlock
+                            Style="{StaticResource MaterialDesignHeadline6TextBlock}"
+                            Text="ふたば"
+                            TextWrapping="Wrap"
+                            />
+                    </StackPanel>
+                    <material:Card
+                        Grid.Row="14"
+                        Style="{StaticResource MaterialDesignOutlinedCard}"
+                        Padding="8">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="260" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+
+                            <TextBlock
+                                Grid.Column="0"
+                                Style="{StaticResource MaterialDesignBody1TextBlock}"
+                                VerticalAlignment="Center"
+                                Text="削除パスワード"
+                                TextWrapping="Wrap"
+                                />
+                            <TextBox
+                                Grid.Column="1"
+                                VerticalAlignment="Top"
+                                material:HintAssist.Hint="ふたばパスワード"
+                                Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                                Text="{Binding FutabaPasswd.Value, Mode=TwoWay}"
+                                />
+                        </Grid>
+                    </material:Card>
+
+                    <StackPanel Grid.Row="16" Orientation="Horizontal">
+                        <Viewbox Width="28" Height="28" Stretch="Uniform">
+                            <material:PackIcon Kind="SproutOutline" />
+                        </Viewbox>
+                        <TextBlock
+                            Style="{StaticResource MaterialDesignHeadline6TextBlock}"
+                            Text="aimg"
+                            TextWrapping="Wrap"
+                            />
+                    </StackPanel>
+                    <material:Card
+                        Grid.Row="18"
+                        Style="{StaticResource MaterialDesignOutlinedCard}"
+                        Padding="8">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="260" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition MinHeight="56" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition MinHeight="56" />
+                            </Grid.RowDefinitions>
+
+                            <TextBlock
+                                Grid.Column="0"
+                                Style="{StaticResource MaterialDesignBody1TextBlock}"
+                                VerticalAlignment="Center"
+                                Text="削除パスワード"
+                                TextWrapping="Wrap"
+                                />
+                            <TextBox
+                                Grid.Column="1"
+                                VerticalAlignment="Top"
+                                material:HintAssist.Hint="aimgパスワード"
+                                Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                                Text="{Binding NijiuraChanPasswd.Value, Mode=TwoWay}"
+                                />
+
+                            <Separator
+                                Grid.Column="0" Grid.ColumnSpan="2"
+                                Grid.Row="1"
+                                Margin="16,8,16,8"
+                                Style="{StaticResource MaterialDesignDarkSeparator}" />
+
+                            <TextBlock
+                                Grid.Column="0"
+                                Grid.Row="2"
+                                Style="{StaticResource MaterialDesignBody1TextBlock}"
+                                VerticalAlignment="Center"
+                                Text="tegaki.png更新対象"
+                                TextWrapping="Wrap"
+                                />
+
+                            <TextBlock
+                                Grid.Column="1"
+                                Grid.Row="2"
+                                Style="{StaticResource MaterialDesignBody1TextBlock}"
+                                VerticalAlignment="Center"
+                                HorizontalAlignment="Right"
+                                Text="PNG画像のみ"
+                                TextWrapping="Wrap"
+                                />
+                            <!--
+                            <ComboBox
+                                Grid.Column="1"
+                                Grid.Row="2"
+                                Style="{StaticResource MaterialDesignOutlinedComboBox}"
+                                MinWidth="160"
+                                HorizontalAlignment="Right"
+                                material:HintAssist.Hint="Some item"
+                                SelectedIndex="0">
+                                <ComboBoxItem Content="更新しない" />
+                                <ComboBoxItem Content="全て" />
+                                <ComboBoxItem Content="画像ファイル全て" />
+                                <ComboBoxItem Content="PNG画像のみ" />
+                            </ComboBox>
+                            -->
+                        </Grid>
+                    </material:Card>
+
+                    <StackPanel Grid.Row="20" Orientation="Horizontal">
+                        <Viewbox Width="28" Height="28" Stretch="Uniform">
+                            <material:PackIcon Kind="GoogleChrome" />
+                        </Viewbox>
+                        <TextBlock
+                            Style="{StaticResource MaterialDesignHeadline6TextBlock}"
+                            Text="Chrome拡張連携"
+                            TextWrapping="Wrap"
+                            />
+                    </StackPanel>
+                    <material:Card
+                        Grid.Row="22"
+                        Style="{StaticResource MaterialDesignOutlinedCard}"
+                        Padding="8">
+                        <Grid Grid.Column="1" Grid.Row="3" HorizontalAlignment="Right">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="152" />
+                                <ColumnDefinition Width="8" />
+                                <ColumnDefinition Width="152" />
+                            </Grid.ColumnDefinitions>
+                            <Button Grid.Column="0">
+                                <Button.Content>
+                                    <StackPanel Orientation="Horizontal">
+                                        <Viewbox Width="16" Height="16" Stretch="Uniform">
+                                            <material:PackIcon Kind="Security" />
+                                        </Viewbox>
+                                        <TextBlock Text="URLスキーマ登録" />
+                                    </StackPanel>
+                                </Button.Content>
+
+                                <i:Interaction.Triggers>
+                                    <i:EventTrigger EventName="Click">
+                                        <ri:EventToReactiveCommand Command="{Binding DataContext.AddUrlSchemeCommand, Mode=OneWay, ElementName=_this}" />
+                                    </i:EventTrigger>
+                                </i:Interaction.Triggers>
+                            </Button>
+
+                            <Button Grid.Column="2" Cursor="Hand">
+                                <Button.Content>
+                                    <StackPanel Orientation="Horizontal">
+                                        <Viewbox Width="16" Height="16" Stretch="Uniform">
+                                            <material:PackIcon Kind="Security" />
+                                        </Viewbox>
+                                        <TextBlock Text="URLスキーマ削除" />
+                                    </StackPanel>
+                                </Button.Content>
+
+                                <i:Interaction.Triggers>
+                                    <i:EventTrigger EventName="Click">
+                                        <ri:EventToReactiveCommand Command="{Binding DataContext.RemoveUrlSchemeCommand, Mode=OneWay, ElementName=_this}" />
+                                    </i:EventTrigger>
+                                </i:Interaction.Triggers>
+                            </Button>
+                        </Grid>
+                    </material:Card>
+                    
+
+                    <StackPanel Grid.Row="24" Orientation="Horizontal">
+                        <Viewbox Width="26" Height="28" Stretch="Uniform">
+                            <material:PackIcon Kind="Flask" />
+                        </Viewbox>
+                        <TextBlock
+                            Style="{StaticResource MaterialDesignHeadline6TextBlock}"
+                            Text="開発向け設定"
+                            TextWrapping="Wrap"
+                            />
+                    </StackPanel>
+                    <material:Card
+                        Grid.Row="28"
+                        Style="{StaticResource MaterialDesignOutlinedCard}"
+                        Padding="8">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="260" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="56" />
+                                <RowDefinition Height="56" />
+                            </Grid.RowDefinitions>
+
+                            <TextBlock
+                                Grid.Column="0"
+                                Grid.Row="0"
+                                Style="{StaticResource MaterialDesignBody1TextBlock}"
+                                VerticalAlignment="Center"
+                                Text="tegaki_save連携フォルダ"
+                                TextWrapping="Wrap"
+                                />
+
+                            <Grid Grid.Column="1" Grid.Row="0">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="56" />
+                                </Grid.ColumnDefinitions>
+                                <TextBox
+                                    material:HintAssist.Hint="標準から変更する場合は入力"
+                                    Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                                    Text="{Binding PathLegacyTegakiSave.Value, Mode=TwoWay}"
+                                    />
+                                <Button
+                                    Grid.Column="1"
+                                    Style="{StaticResource MaterialDesignOutlinedButton}"
+                                    material:ButtonAssist.CornerRadius="10"
+                                    Height="56"
+                                    Margin="4,0,0,0">
+                                    <Button.Content>
+                                        <Viewbox>
+                                            <material:PackIcon Kind="FolderOpenOutline" />
+                                        </Viewbox>
+                                    </Button.Content>
+
+                                    <i:Interaction.Triggers>
+                                        <i:EventTrigger EventName="Click">
+                                            <l:FolderBrowserDialogInteractionMessageAction>
+                                                <l:DirectInteractionMessage CallbackCommand="{Binding TegakiSaveFolderSelectCommand}">
+                                                    <l:FolderSelectionMessage Description="フォルダーの選択" DialogPreference="None" />
+                                                </l:DirectInteractionMessage>
+                                            </l:FolderBrowserDialogInteractionMessageAction>
+                                        </i:EventTrigger>
+                                    </i:Interaction.Triggers>
+                                </Button>
+                            </Grid>
+
+                            <TextBlock
+                                Grid.Column="0"
+                                Grid.Row="1"
+                                Style="{StaticResource MaterialDesignBody1TextBlock}"
+                                VerticalAlignment="Center"
+                                Text="WebView2開発ツール"
+                                TextWrapping="Wrap"
+                                />
+                            <ToggleButton
+                                Grid.Column="1"
+                                Grid.Row="1"
+                                Style="{StaticResource MaterialDesignSwitchLightToggleButton}"
+                                HorizontalAlignment="Right"
+                                VerticalAlignment="Center"
+                                IsChecked="{Binding OpenWebViewDevTool.Value, Mode=TwoWay}"
+                                />
+                        </Grid>
+                    </material:Card>
+                </Grid>
+            </Border>
+        </ScrollViewer>
+
+
+        <Grid Visibility="{Binding StartPageVisibility.Value, Mode=OneWay}">
+            <Grid MaxWidth="720" HorizontalAlignment="Stretch" VerticalAlignment="Center">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="8" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="8" />
+                    <RowDefinition Height="36" />
+                </Grid.RowDefinitions>
+
+                <TextBox
+                    Grid.Column="0" Grid.ColumnSpan="3"
+                    Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                    material:HintAssist.Hint="スレッドのURLを入力"
+                    Text="{Binding Url.Value, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                    />
+                <Button
+                    Grid.Column="0" Grid.Row="2"
+                    Width="240"
+                    HorizontalAlignment="Right">
+                    <Button.Content>
+                        <TextBlock Text="最初から読み上げ" />
+                    </Button.Content>
+
+                    <i:Interaction.Triggers>
+                        <i:EventTrigger EventName="Click">
+                            <ri:EventToReactiveCommand Command="{Binding ClickYomiageStartCommand, Mode=OneWay}" />
+                        </i:EventTrigger>
+                    </i:Interaction.Triggers>
+                </Button>
+
+                <Button
+                    Grid.Column="2" Grid.Row="2"
+                    Width="240"
+                    HorizontalAlignment="Left">
+                    <Button.Content>
+                        <TextBlock Text="途中から読み上げ" />
+                    </Button.Content>
+
+                    <i:Interaction.Triggers>
+                        <i:EventTrigger EventName="Click">
+                            <ri:EventToReactiveCommand Command="{Binding ClickYomiageSkipCommand, Mode=OneWay}" />
+                        </i:EventTrigger>
+                    </i:Interaction.Triggers>
+                </Button>
+            </Grid>
+
+            <StackPanel
+                    HorizontalAlignment="Right"
+                    VerticalAlignment="Bottom"
+                    Margin="32,16,32,16"
+                    >
+                <Button
+                    Style="{StaticResource MaterialDesignFloatingActionSecondaryButton}"
+                    material:ElevationAssist.Elevation="Dp8"
+                    HorizontalAlignment="Right"
+                    VerticalAlignment="Bottom"
+                    >
+                    <Viewbox Stretch="UniformToFill" Width="32" Height="32">
+                        <material:PackIcon Kind="CogOutline" />
+                    </Viewbox>
+
+                    <i:Interaction.Triggers>
+                        <i:EventTrigger EventName="Click">
+                            <ri:EventToReactiveCommand Command="{Binding OpenConfigCommand, Mode=OneWay}" />
+                        </i:EventTrigger>
+                    </i:Interaction.Triggers>
+                </Button>
+            </StackPanel>
+        </Grid>
+        <Grid Visibility="{Binding MainPageVisibility.Value, Mode=OneWay}">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="92" />
+                <ColumnDefinition Width="92" />
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+            <TextBox
+                Grid.Column="0"
+                Grid.Row="0"
+                Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                material:HintAssist.Hint="スレッドのURLを入力"
+                Text="{Binding Url.Value, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                />
+            <Button
+                Grid.Column="1"
+                Grid.Row="0"
+                Height="Auto"
+                Margin="2">
+                <Button.Content>
+                    <TextBlock Text="最初から" />
+                </Button.Content>
+
+                <i:Interaction.Triggers>
+                    <i:EventTrigger EventName="Click">
+                        <ri:EventToReactiveCommand Command="{Binding ClickYomiageStartCommand, Mode=OneWay}" />
+                    </i:EventTrigger>
+                </i:Interaction.Triggers>
+            </Button>
+
+            <Button
+                Grid.Column="2"
+                Grid.Row="0"
+                Height="Auto"
+                Margin="0,2,2,2">
+                <Button.Content>
+                    <TextBlock Text="途中から" />
+                </Button.Content>
+
+                <i:Interaction.Triggers>
+                    <i:EventTrigger EventName="Click">
+                        <ri:EventToReactiveCommand Command="{Binding ClickYomiageSkipCommand, Mode=OneWay}" />
+                    </i:EventTrigger>
+                </i:Interaction.Triggers>
+            </Button>
+
+            <ListBox
+                Grid.Column="0" Grid.ColumnSpan="3"
+                Grid.Row="1"
+                ItemsSource="{Binding Yomiage, Mode=OneWay}"
+                ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                ScrollViewer.CanContentScroll="True"
+                VirtualizingPanel.IsVirtualizing="True"
+                VirtualizingPanel.VirtualizationMode="Recycling"
+                material:ListBoxItemAssist.ShowSelection="False">
+                <ListBox.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <VirtualizingStackPanel
+                                Orientation="Vertical"
+                                IsItemsHost="True" 
+                                UseLayoutRounding="False"
+                                HorizontalAlignment="Stretch"
+                                />
+                    </ItemsPanelTemplate>
+                </ListBox.ItemsPanel>
+                <ListBox.ItemTemplate>
+                    <DataTemplate>
+                        <Border Padding="8,8,8,0">
+                            <Grid>
+                                <TextBlock
+                                    Grid.Column="0"
+                                    Grid.Row="0"
+                                    Style="{StaticResource MaterialDesignBody1TextBlock}"
+                                    Text="{Binding Url.Value, Mode=OneWay}"
+                                    />
+                            </Grid>
+                        </Border>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
+        </Grid>
+
+        <material:Snackbar
+            HorizontalAlignment="Stretch"
+            VerticalAlignment="Bottom"
+            MessageQueue="{Binding SnackbarMessageQueue}"
+            />
+    </Grid>
+</Window>

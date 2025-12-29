@@ -1,0 +1,63 @@
+{
+  "manifest_version": 3,
+  "name": "スレ詠みちゃん",
+  "short_name": "sureyomichan",
+  "version": "25.1227",
+  "description": "sureyomichan chrom extension",
+  "icons": {
+    "16": "icon/icon_16.png",
+    "48": "icon/icon_48.png",
+    "128": "icon/icon_128.png"
+  },
+  "action": {
+    "default_icon": {
+      "19": "icon/icon_19.png",
+      "38": "icon/icon_38.png"
+    },
+    "default_title": "スレ詠みちゃん",
+    "default_popup": "popup.html"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "http://img.2chan.net/b/res/*",
+        "https://img.2chan.net/b/res/*"
+      ],
+      "js": [
+        "js/futaba.js"
+      ],
+      "css": ["css/tegaki_save.css"]
+    },
+    {
+      "matches": [
+        "https://nijiurachan.net/pc/thread.php?id=*"
+      ],
+      "js": [
+        "js/nijiurachan.js"
+      ],
+      "css": ["css/tegaki_save.css"]
+    }
+  ],
+  "permissions": [
+    "storage"
+  ],
+  "host_permissions": [
+    "http://localhost/*",
+    "https://*/*",
+    "http://*/*"
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "js/common.js",
+        "icon/*.png"
+      ],
+      "matches": [
+        "http://img.2chan.net/*",
+        "https://img.2chan.net/*",
+        "https://nijiurachan.net/*"
+      ]
+    }
+  ],
+  "homepage_url" : "https://img.2chan.net/b/futaba.php?mode=cat"
+}

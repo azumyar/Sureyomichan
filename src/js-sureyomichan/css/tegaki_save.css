@@ -1,0 +1,66 @@
+
+.tethre{margin-right:0px;}
+.tethre table{border:none;	margin-right:0px;min-width:480px;}
+.terts{width:18px;vertical-align:top;}
+.tertd{max-width:1800px;padding-right:8px;background-color:#F0E0D6;}
+.tecnw{margin:0 5px;font-size:small;}/*now*/
+.tersc{font-size:x-small;}
+.tecnm{color:#005ce6;margin:0 5px;font-size:small;}/*name*/
+.tecno{margin:0 15px 0 5px;text-decoration:underline;font-size:small;}/*No.*/
+.tecno:hover{color:red;cursor:pointer;}/*No.*/
+.tecntd{font-size:small;}
+.tedt{background-color:#F0E0D6;border-color:#800000;color:#800000;border:1px solid;}
+.tedm{background-color:#FFFFEE;border-color:#800000;border:1px solid;}
+.tesmc{margin:0px;font-size:small;}/*now*/
+.tepdmm{/*width:180px;height:200px;*/border:solid 1px #800;background-color:#ffe;box-shadow:2px 2px 3px 0px #777;border-radius:5px;z-index:15;}
+
+
+.tehrtext{
+  display: flex;  /* 横並びにする */
+  align-items: center;  /* 垂直方向に中央 */
+  text-align: left;  /* 文字のセンタリング(複数行になったとき用) */
+  font-size:60%;
+  margin: 0px;
+}
+.tehrtext::after{
+  content:"";
+  flex-grow: 1;  /* 線の伸び率 */
+  border-bottom: 1px dotted #333;
+}
+.tehrtext::after{
+  margin-left: 10px;  /* 線と文字の間のスペース */
+  padding-right: 15px;  /* 線の長さが、最低でも15px以上になるように余白をとる */
+}
+
+.tefieldset {
+  padding: 0px 0px 0px 10px;
+  margin: 0px 0px 0px 10px;
+  width: 252px;
+  font-size:small;
+  border-color:#800000;
+}
+.tefieldset legend {
+  font-weight: bold;
+}
+.tebtn {
+  display: inline-block;
+  padding: 6px 12px;
+  margin: 10px;
+  line-height: 1.5;
+  text-align: center;
+  white-space: nowrap;
+  vertical-align: middle;
+  cursor: pointer;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  color: #800000;
+  background-color: #F0E0D6;
+  border-color: #800000;
+}
+
+.tebtn:hover,
+.tebtn:active {
+  color: #800000;
+  background-color: #ea8;
+  border-color: #800000;
+}
