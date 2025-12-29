@@ -51,8 +51,9 @@ jobs:
     - name: Create Artifact Zip
       run: |
         pushd src\cs-sureyomichan
-        Compress-Archive -Path dist -DestinationPath "sureyomichan-${{github.ref_name}}.zip"
+        Compress-Archive -Path dist -DestinationPath "sureyomichan.zip"
         popd
+        move "src\cs-sureyomichan\sureyomichan.zip" "sureyomichan-${{github.ref_name}}.zip"
 
     - name: Pre Release
       uses: softprops/action-gh-release@v2
