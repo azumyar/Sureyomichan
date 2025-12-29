@@ -1,0 +1,47 @@
+body {
+  background: #FFFFEE;
+  color: #800000;
+  text-align:center;
+  max-width: 295px;
+  min-width: 270px;
+}
+
+h1 {
+  margin:2px 0;
+}
+fieldset {
+  border: 1px solid #000000;
+  padding: 2px;
+}
+table {
+   table-layout: fixed;
+   width: 100%;
+}
+input[type="text"],
+img {
+  vertical-align:middle;
+}
+input[type="checkbox"],
+input[type="radio"] {
+  margin: 1px;
+  vertical-align:-0.19em;
+}
+input[type="number"]{
+  text-align: right;
+  width:18%;
+}
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+.textLeft {
+  text-align:left;
+}
+.textRight {
+  text-align:right;
+}
+.left {
+  clear: both;
+  float: left;
+}

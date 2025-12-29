@@ -1,0 +1,65 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <RootNamespace>Haru.Kei.SureyomiChan</RootNamespace>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <UseWindowsForms>true</UseWindowsForms>
+    <UseWPF>true</UseWPF>
+  </PropertyGroup>
+
+  <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+    <PublishDir>../../dist</PublishDir>
+    <OutputType>WinExe</OutputType>
+    <DebugType>none</DebugType>
+	<PublishReadyToRun>true</PublishReadyToRun>
+	<PublishReadyToRunShowWarnings>true</PublishReadyToRunShowWarnings>
+	<PublishSingleFile>true</PublishSingleFile>
+	<SelfContained>false</SelfContained>
+  </PropertyGroup>	
+	
+  <ItemGroup>
+    <PackageReference Include="LiteDB" Version="5.0.21" />
+    <PackageReference Include="LivetExtensions" Version="4.0.2" />
+    <PackageReference Include="MahApps.Metro" Version="2.4.11" />
+    <PackageReference Include="MaterialDesignThemes" Version="5.3.0" />
+    <PackageReference Include="MaterialDesignThemes.MahApps" Version="5.3.0" />
+    <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.3595.46" />
+    <PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.135" />
+    <PackageReference Include="NAudio" Version="2.2.1" />
+    <PackageReference Include="NAudio.Wasapi" Version="2.2.1" />
+    <PackageReference Include="Prism.Unity" Version="9.0.537" />
+    <PackageReference Include="Prism.Wpf" Version="9.0.537" />
+    <PackageReference Include="ReactiveProperty" Version="9.8.0" />
+    <PackageReference Include="ReactiveProperty.WPF" Version="9.8.0" />
+    <PackageReference Include="System.Management" Version="10.0.0" />
+    <PackageReference Include="LivetCask.Messaging" Version="4.0.2" />
+    <PackageReference Include="Lucene.Net.Analysis.Kuromoji" Version="4.8.0-beta00016" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\third\APNG.NET-netstandard_and_wpf\LibAPNG.WPF\LibAPNG.WPF.csproj" />
+    <ProjectReference Include="..\..\third\APNG.NET-netstandard_and_wpf\LibAPNG\LibAPNG.csproj" />
+    <ProjectReference Include="..\..\third\WpfAnimatedGif\WpfAnimatedGif\WpfAnimatedGif.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="assets\sound\activealert.wav">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="assets\sound\alarm.wav">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="assets\sound\save.wav">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="assets\sound\start.wav">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="assets\sound\_save.wav">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+</Project>

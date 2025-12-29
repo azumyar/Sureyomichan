@@ -1,0 +1,8 @@
+<Solution>
+  <Folder Name="/Third/">
+    <Project Path="third/APNG.NET-netstandard_and_wpf/LibAPNG.WPF/LibAPNG.WPF.csproj" Id="455f16bc-ae64-4620-b55d-d4e70467cf9d" />
+    <Project Path="third/APNG.NET-netstandard_and_wpf/LibAPNG/LibAPNG.csproj" />
+    <Project Path="third/WpfAnimatedGif/WpfAnimatedGif/WpfAnimatedGif.csproj" />
+  </Folder>
+  <Project Path="src/Sureyomichan/Sureyomichan.csproj" />
+</Solution>
