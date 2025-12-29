@@ -17,7 +17,7 @@ jobs:
       run: |
         $text = "${{github.ref_name}}"
         if ( !($text -match "^(v|pre)\.\d\d(\d\d)(\d\d\d\d)$") ) {
-          exho invalid tag name
+          echo invalid tag name
           exit 1
         }
 
@@ -49,9 +49,11 @@ jobs:
         echo $jsonOutput > .\src\cs-sureyomichan\dist\chrome-extensions\manifest.json
 
     - name: Create Artifact Zip
-      pushd src\cs-sureyomichan
-      run: Compress-Archive -Path dist -DestinationPath "sureyomichan-${{github.ref_name}}.zip"
-      popd
+      run: |
+        pushd src\cs-sureyomichan
+        Compress-Archive -Path dist -DestinationPath "sureyomichan.zip"
+        popd
+        move "src\cs-sureyomichan\sureyomichan.zip" "sureyomichan-${{github.ref_name}}.zip"
 
     - name: Pre Release
       uses: softprops/action-gh-release@v2
