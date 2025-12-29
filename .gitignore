@@ -1,0 +1,13 @@
+src/**/**/bin
+src/**/**/obj
+src/pages/src/.vitepress/cache
+
+.vs/
+.cache/
+packages/
+dist
+node_modules
+
+
+*.csproj.user
+

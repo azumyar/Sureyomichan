@@ -1,0 +1,496 @@
+<UserControl
+    x:Name="_this"
+    x:Class="Haru.Kei.SureyomiChan.Views.YomiageDialog"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+    xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
+    xmlns:ri="clr-namespace:Reactive.Bindings.Interactivity;assembly=ReactiveProperty.WPF"
+    xmlns:material="http://materialdesigninxaml.net/winfx/xaml/themes"
+    xmlns:metro="http://metro.mahapps.com/winfx/xaml/controls"
+    xmlns:b="clr-namespace:Haru.Kei.SureyomiChan.Behaviors"
+    xmlns:local="clr-namespace:Haru.Kei.SureyomiChan.Views"
+    mc:Ignorable="d" 
+    d:DesignHeight="450" d:DesignWidth="800">
+    <!--
+    <i:Interaction.Triggers>
+        <i:EventTrigger EventName="Loaded">
+            <ri:EventToReactiveCommand Command="{Binding LoadedCommand, Mode=OneWay}" />
+        </i:EventTrigger>
+    </i:Interaction.Triggers>
+    -->
+    <Grid>
+        <Border Background="{StaticResource MaterialDesign.Brush.Primary.Light}">
+            <Grid>
+                <ListBox
+                    x:Name="ReplyListBox"
+                    Grid.Column="0" Grid.ColumnSpan="2"
+                    Grid.Row="1"
+                    ItemsSource="{Binding Replies, Mode=OneWay}"
+                    ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                    ScrollViewer.CanContentScroll="True"
+                    VirtualizingPanel.ScrollUnit="Pixel"
+                    VirtualizingPanel.IsVirtualizing="True"
+                    VirtualizingPanel.VirtualizationMode="Recycling"
+                    material:ListBoxItemAssist.ShowSelection="False">
+                    <ListBox.Style>
+                        <Style TargetType="ListBox">
+                            <Setter Property="Template">
+                                <Setter.Value>
+                                    <ControlTemplate TargetType="ListBox">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="2*" />
+                                            </Grid.ColumnDefinitions>
+                                            <Grid.RowDefinitions>
+                                                <RowDefinition Height="*" />
+                                                <RowDefinition Height="2*" />
+                                            </Grid.RowDefinitions>
+
+                                            <Grid
+                                                Grid.Row="0" Grid.RowSpan="2"
+                                                Grid.Column="0" Grid.ColumnSpan="2">
+                                                <Grid.RowDefinitions>
+                                                    <RowDefinition Height="*" />
+                                                    <RowDefinition Height="Auto" />
+                                                </Grid.RowDefinitions>
+
+                                                <ScrollViewer
+                                                    Grid.Row="0"
+                                                    CanContentScroll="True"
+                                                    Margin="0"
+                                                    Focusable="false">
+                                                    <Border Margin="0,138,0,32">
+                                                        <ItemsPresenter />
+                                                    </Border>
+                                                </ScrollViewer>
+                                            </Grid>
+                                        </Grid>
+                                    </ControlTemplate>
+                                </Setter.Value>
+                            </Setter>
+                        </Style>
+                    </ListBox.Style>
+                    <ListBox.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <VirtualizingStackPanel
+                                Orientation="Vertical"
+                                IsItemsHost="True" 
+                                UseLayoutRounding="False"
+                                HorizontalAlignment="Stretch"
+                                />
+                        </ItemsPanelTemplate>
+                    </ListBox.ItemsPanel>
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <Border Padding="16,8,16,0">
+                                <Grid>
+                                    <material:Card
+                                        Visibility="{Binding ResVisibility.Value, Mode=OneWay}"
+                                        Padding="16,8,16,8"
+                                        Background="{DynamicResource PrimaryHueLightBrush}"
+                                        Foreground="{DynamicResource PrimaryHueLightForegroundBrush}">
+                                        <Grid>
+                                            <Grid.RowDefinitions>
+                                                <RowDefinition Height="Auto" />
+                                                <RowDefinition Height="8" />
+                                                <RowDefinition Height="*" />
+                                                <RowDefinition Height="8" />
+                                            </Grid.RowDefinitions>
+
+                                            <Grid Grid.Row="0">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="Auto" />
+                                                    <ColumnDefinition Width="8" />
+                                                    <ColumnDefinition Width="Auto" />
+                                                    <ColumnDefinition Width="8" />
+                                                    <ColumnDefinition Width="Auto" />
+                                                    <ColumnDefinition Width="8" />
+                                                    <ColumnDefinition Width="Auto" />
+                                                    <ColumnDefinition Width="8" />
+                                                    <ColumnDefinition Width="Auto" />
+                                                </Grid.ColumnDefinitions>
+
+                                                <TextBlock
+                                                    Grid.Column="0"
+                                                    Grid.Row="0"
+                                                    Style="{StaticResource MaterialDesignBody1TextBlock}"
+                                                    >
+                                                    <Run Text="{Binding ResIndex.Value, Mode=OneWay}" />
+                                                    <Run
+                                                        Text="{Binding Email.Value, Mode=OneWay}" />
+                                                </TextBlock>
+                                                <TextBlock
+                                                    Grid.Column="2"
+                                                    Grid.Row="0"
+                                                    Style="{StaticResource MaterialDesignBody1TextBlock}"
+                                                    Text="{Binding PostTime.Value, Mode=OneWay}"
+                                                    />
+                                                <TextBlock
+                                                    Grid.Column="4"
+                                                    Grid.Row="0"
+                                                    Style="{StaticResource MaterialDesignBody1TextBlock}"
+                                                    Text="{Binding No.Value, Mode=OneWay}"
+                                                    />
+                                                <Button
+                                                    Grid.Column="6"
+                                                    Grid.Row="0"
+                                                    Style="{StaticResource MaterialDesignOutlinedButton}"
+                                                    Visibility="{Binding SendDelVisibility.Value, Mode=OneWay}"
+                                                    Content="del"
+                                                    >
+                                                    <i:Interaction.Triggers>
+                                                        <i:EventTrigger EventName="Click">
+                                                            <ri:EventToReactiveCommand Command="{Binding DataContext.SendDelCommand, Mode=OneWay, ElementName=_this}" />
+                                                        </i:EventTrigger>
+                                                    </i:Interaction.Triggers>
+                                                </Button>
+                                                <Button
+                                                    Grid.Column="8"
+                                                    Grid.Row="0"
+                                                    material:ButtonProgressAssist.IsIndeterminate="{Binding IndeterminateDeleteProgress.Value, Mode=OneWay}"
+                                                    material:ButtonProgressAssist.IsIndicatorVisible="True"
+                                                    material:ButtonProgressAssist.Value="{Binding DeleteProgress.Value, Mode=OneWay}"
+                                                
+                                                    Style="{StaticResource MaterialDesignOutlinedButton}"
+                                                    Visibility="{Binding DeleteResVisibility.Value, Mode=OneWay}"
+                                                    Content="削除"
+                                                    >
+                                                    <i:Interaction.Triggers>
+                                                        <i:EventTrigger EventName="Click">
+                                                            <ri:EventToReactiveCommand Command="{Binding DataContext.DeleteResCommand, Mode=OneWay, ElementName=_this}" />
+                                                        </i:EventTrigger>
+                                                    </i:Interaction.Triggers>
+                                                </Button>
+                                            </Grid>
+                                            <Grid Grid.Row="2">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="Auto" />
+                                                    <ColumnDefinition Width="*" />
+                                                </Grid.ColumnDefinitions>
+                                                <Grid.RowDefinitions>
+                                                    <RowDefinition Height="Auto" />
+                                                    <RowDefinition Height="Auto" />
+                                                </Grid.RowDefinitions>
+                                                <TextBlock
+                                                    Grid.Column="0"
+                                                    Grid.Row="0"
+                                                    Style="{StaticResource MaterialDesignBody2TextBlock}"
+                                                    Text="{Binding ImageName.Value, Mode=OneWay}"
+                                                    TextWrapping="Wrap" />
+
+                                                <Viewbox
+                                                    Grid.Column="0"
+                                                    Grid.Row="1"
+                                                    Stretch="UniformToFill"
+                                                    MaxWidth="200"
+                                                    MaxHeight="200"
+                                                    Margin="0"
+                                                    >
+                                                    <Image
+                                                        Source="{Binding Image.Value.ImageSource}"
+                                                        RenderOptions.EdgeMode="Aliased"
+                                                        RenderOptions.BitmapScalingMode="Fant">
+                                                        <Image.CacheMode>
+                                                            <BitmapCache RenderAtScale="1" />
+                                                        </Image.CacheMode>
+                                                        <i:Interaction.Behaviors>
+                                                            <b:ImageBehavior Source="{Binding Image.Value, Mode=OneWay}" />
+                                                        </i:Interaction.Behaviors>
+                                                    </Image>
+
+                                                    <i:Interaction.Triggers>
+                                                        <i:DataTrigger Binding="{Binding Image.Value}" Value="{x:Null}" Comparison="Equal">
+                                                            <i:ChangePropertyAction PropertyName="Margin" Value="0,0,16,0" />
+                                                        </i:DataTrigger>
+                                                    </i:Interaction.Triggers>
+                                                </Viewbox>
+
+                                                <Border
+                                                    Grid.Column="0"
+                                                    Grid.Row="1"
+                                                    Visibility="{Binding ImageErrorVisibility.Value, Mode=OneWay}"
+                                                    Background="#444444"
+                                                    Width="200"
+                                                    Height="200"
+                                                    Margin="0,0,16,0"
+                                                    >
+                                                    <TextBlock
+                                                        Foreground="White"
+                                                        HorizontalAlignment="Center"
+                                                        VerticalAlignment="Center"
+                                                        Text="取得エラー"
+                                                        />
+                                                </Border>
+
+                                                <TextBlock
+                                                    Grid.Column="1"
+                                                    Grid.Row="0" Grid.RowSpan="2"
+                                                    Style="{StaticResource MaterialDesignBody2TextBlock}"
+                                                    Text="{Binding Body.Value, Mode=OneWay}"
+                                                    TextWrapping="Wrap" />
+                                            </Grid>
+                                        </Grid>
+                                    </material:Card>
+
+                                    <Border Visibility="{Binding NgVisibility.Value, Mode=OneWay}">
+                                        <TextBlock
+                                            Opacity="0.7"
+                                            Padding="16,32,16,32"
+                                            Text="{Binding NgText.Value, Mode=OneWay}"
+                                            />
+                                    </Border>
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+
+                <material:ColorZone
+                    Margin="48,16,48,8"
+                    Padding="16"
+                    material:ElevationAssist.Elevation="Dp4"
+                    ClipToBounds="False"
+                    CornerRadius="10"
+                    Mode="Dark"
+                    VerticalAlignment="Top">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="8" />
+                            <RowDefinition Height="24" />
+                        </Grid.RowDefinitions>
+
+                        <Grid Grid.Row="0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <TextBox
+                                Grid.Column="0"
+                                Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                                Text="{Binding Url.Value, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                IsReadOnly="true"
+                                />
+                            <Button
+                                Grid.Column="1"
+                                Width="72"
+                                Padding="8,0,0,0"
+                                Visibility="Collapsed">
+                                <Button.Content>
+                                    <Grid>
+                                        <material:PackIcon
+                                            Visibility="{Binding YomiageStatusStop.Value, Mode=OneWay}"
+                                            Kind="PlayCircleOutline" />
+                                        <material:PackIcon
+                                            Visibility="{Binding YomiageStatusRunning.Value, Mode=OneWay}"
+                                            Kind="PauseOctagonOutline" />
+                                    </Grid>
+                                </Button.Content>
+
+                                <i:Interaction.Triggers>
+                                    <i:EventTrigger EventName="Click">
+                                        <ri:EventToReactiveCommand Command="{Binding ClickYomiageCommand, Mode=OneWay}" />
+                                    </i:EventTrigger>
+                                </i:Interaction.Triggers>
+                            </Button>
+                        </Grid>
+
+                        <Grid Grid.Row="2" MinHeight="20">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="20" />
+                                <ColumnDefinition Width="4" />
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="20" />
+                                <ColumnDefinition Width="4" />
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="20" />
+                            </Grid.ColumnDefinitions>
+
+                            <TextBlock
+                                Grid.Column="0"
+                                Style="{StaticResource MaterialDesignBody2TextBlock}"
+                                VerticalAlignment="Center"
+                                Text="{Binding ThreadDieText.Value, Mode=OneWay}"
+                                />
+
+                            <TextBlock
+                                Grid.Column="1"
+                                Style="{StaticResource MaterialDesignBody2TextBlock}"
+                                HorizontalAlignment="Right"
+                                VerticalAlignment="Center"
+                                Text="読み上げ"
+                                />
+                            <Viewbox
+                                Grid.Column="2"
+                                Width="16" Height="16"
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center"
+                                Stretch="UniformToFill">
+                                <Grid>
+                                    <material:PackIcon
+                                        Visibility="{Binding YomiageStatusStop.Value, Mode=OneWay}"
+                                        Kind="PauseOctagonOutline" />
+                                    <material:PackIcon
+                                        Visibility="{Binding YomiageStatusRunning.Value, Mode=OneWay}"
+                                        Kind="CheckOutline" />
+                                </Grid>
+                            </Viewbox>
+
+                            <TextBlock
+                                Grid.Column="4"
+                                Style="{StaticResource MaterialDesignBody2TextBlock}"
+                                HorizontalAlignment="Right"
+                                VerticalAlignment="Center"
+                                Text="手書き"
+                                />
+                            <Viewbox
+                                Grid.Column="5"
+                                Width="16" Height="16"
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center"
+                                Stretch="UniformToFill">
+                                <Grid>
+                                    <material:PackIcon
+                                        Visibility="{Binding TegakiSaveStatusStop.Value, Mode=OneWay}"
+                                        Kind="CheckOutline" />
+                                    <ProgressBar
+                                        Visibility="{Binding TegakiSaveStatusRunning.Value, Mode=OneWay}"
+                                        Style="{StaticResource MaterialDesignCircularProgressBar}"
+                                        IsIndeterminate="True"
+                                        Value="0"
+                                        />
+                                </Grid>
+                            </Viewbox>
+                            <TextBlock
+                                Grid.Column="7"
+                                Style="{StaticResource MaterialDesignBody2TextBlock}"
+                                HorizontalAlignment="Right"
+                                VerticalAlignment="Center"
+                                Text="API"
+                                />
+                            <Viewbox
+                                Grid.Column="8"
+                                Width="16" Height="16"
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center"
+                                Stretch="UniformToFill">
+                                <Grid>
+                                    <material:PackIcon
+                                        Visibility="{Binding ApiStatusSucess.Value, Mode=OneWay}"
+                                        Kind="CheckOutline" />
+                                    <material:PackIcon
+                                        Visibility="{Binding ApiStatusFail.Value, Mode=OneWay}"
+                                        Kind="AlertOctagon" />
+                                    <ProgressBar
+                                        Visibility="{Binding ApiStatusRunning.Value, Mode=OneWay}"
+                                        Style="{StaticResource MaterialDesignCircularProgressBar}"
+                                        IsIndeterminate="True"
+                                        Value="0"
+                                        />
+                                </Grid>
+                            </Viewbox>
+                        </Grid>
+                    </Grid>
+                </material:ColorZone>
+
+                <StackPanel
+                    HorizontalAlignment="Right"
+                    VerticalAlignment="Bottom"
+                    Margin="32,16,32,16"
+                    >
+                    <material:PopupBox
+                        Grid.Column="0"
+                        Style="{StaticResource MaterialDesignMultiFloatingActionSecondaryPopupBox}"
+                        PlacementMode="TopAndAlignRightEdges"
+                        StaysOpen="True"
+                        PopupElevation="Dp8"
+                        PopupVerticalOffset="-16" Cursor="Hand">
+                        <material:PopupBox.ToggleContent>
+                            <Viewbox Stretch="UniformToFill" Width="32" Height="32">
+                                <material:PackIcon Kind="Menu" Cursor="" />
+                            </Viewbox>
+                        </material:PopupBox.ToggleContent>
+
+                        <Border>
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                </Grid.RowDefinitions>
+
+                                <material:Chip
+                                    Grid.Column="0"
+                                    Grid.Row="0"
+                                    Foreground="Black"
+                                    Background="#eeeeee"
+                                    VerticalAlignment="Center">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="120" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock
+                                            Grid.Column="0"
+                                            Style="{StaticResource MaterialDesignBody1TextBlock}"
+                                            Text="スレッド読込"
+                                            />
+
+                                        <!-- ここはClickイベントで関連変数を書き換えるのでOneWayでよい -->
+                                        <ToggleButton
+                                            Grid.Column="1"
+                                            Style="{StaticResource MaterialDesignSwitchSecondaryToggleButton}"
+                                            VerticalAlignment="Center"
+                                            IsChecked="{Binding IsYomiageRun.Value, Mode=OneWay}">
+                                            <i:Interaction.Triggers>
+                                                <i:EventTrigger EventName="Click">
+                                                    <ri:EventToReactiveCommand Command="{Binding ClickYomiageCommand, Mode=OneWay}" />
+                                                </i:EventTrigger>
+                                            </i:Interaction.Triggers>
+                                        </ToggleButton>
+                                    </Grid>
+                                </material:Chip>
+
+                                <material:Chip
+                                    Grid.Column="0"
+                                    Grid.Row="1"
+                                    Foreground="Black"
+                                    Background="#eeeeee"
+                                    VerticalAlignment="Center">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="120" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock
+                                            Grid.Column="0"
+                                            Style="{StaticResource MaterialDesignBody1TextBlock}"
+                                            Text="自動スクロール"
+                                            />
+
+                                        <ToggleButton
+                                            Grid.Column="1"
+                                            Style="{StaticResource MaterialDesignSwitchSecondaryToggleButton}"
+                                            VerticalAlignment="Center"
+                                            IsChecked="{Binding ListBoxAutoScroll.Value, Mode=TwoWay}"
+                                            />
+                                    </Grid>
+                                </material:Chip>
+                            </Grid>
+                        </Border>
+                    </material:PopupBox>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <material:Snackbar
+            HorizontalAlignment="Stretch"
+            VerticalAlignment="Bottom"
+            MessageQueue="{Binding SnackbarMessageQueue}"
+            />
+    </Grid>
+</UserControl>
