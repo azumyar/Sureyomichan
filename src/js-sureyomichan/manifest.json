@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "スレ詠みちゃん",
   "short_name": "sureyomichan",
-  "version": "25.1227",
+  "version": "0.0",
   "description": "sureyomichan chrom extension",
   "icons": {
     "16": "icon/icon_16.png",
