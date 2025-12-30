@@ -52,7 +52,7 @@ static class Util {
 			DayOfWeek.Saturday => "土",
 			_ => "？"
 		};
-		var time = d.ToString("hh:mm:ss");
+		var time = d.ToString("HH:mm:ss");
 		return $"{date}({dw}){time}";
 	}
 
