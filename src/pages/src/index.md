@@ -31,8 +31,8 @@ hero:
         for(const release of json) {
           if(!release.draft && !release.prerelease) {
             for(const asset of release.assets) {
-                console.log(asset.name);
-              if(asset.name.match(/^v.+\.zip$/)) {
+              console.log(asset.name);
+              if(asset.name.match(/^sureyomichan-v.+\.zip$/)) {
                 const a = document.querySelector(".actions .action a");
                 if(a != null) {
                   a.innerText = `ダウンロード(${release.tag_name})`;
