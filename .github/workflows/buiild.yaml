@@ -16,9 +16,11 @@ jobs:
     - name: Check Tag Name
       run: |
         $text = "${{github.ref_name}}"
-        if ( !($text -match "^(v|pre)\.\d\d(\d\d)(\d\d\d\d)$") ) {
-          exho invalid tag name
-          exit 1
+        if ( !($text -match "^(v|pre)\.\d\d(\d\d)(\d\d\d\d)_(\d+)$") ) {
+          if ( !($text -match "^(v|pre)\.\d\d(\d\d)(\d\d\d\d)$") ) {
+            exho invalid tag name
+            exit 1
+          }
         }
 
     - name: Checkout
