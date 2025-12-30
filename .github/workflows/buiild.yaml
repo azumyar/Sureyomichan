@@ -45,7 +45,7 @@ jobs:
         $jsonContent = Get-Content -Path .\src\js-sureyomichan\manifest.json -Raw
         $jsonObject = ConvertFrom-Json $jsonContent
         $jsonObject.version = ""+$Matches[2]+"."+$Matches[3]
-        $jsonOutput = ConvertTo-Json $jsonObject
+        $jsonOutput = ConvertTo-Json $jsonObject -Depth 10 -Compress:$false
         echo $jsonOutput > .\src\cs-sureyomichan\dist\chrome-extensions\manifest.json
 
     - name: Create Artifact Zip
