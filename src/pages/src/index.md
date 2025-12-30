@@ -7,7 +7,7 @@ hero:
   actions:
       - theme: brand
         text: ダウンロード
-        link: https://github.com/HARUKei66494739/recognize/releases
+        link: https://github.com/HARUKei66494739/Sureyomichan/releases
 
 #features:
 #  - title: Feature A
@@ -23,7 +23,7 @@ hero:
   import { onMounted } from 'vue';
   onMounted(() => {
     const account = "HARUKei66494739";
-    const repository = "recognize";
+    const repository = "Sureyomichan";
     fetch(`https://api.github.com/repos/${account}/${repository}/releases`)
       .then(function (res) {
         return res.json();
@@ -32,7 +32,7 @@ hero:
           if(!release.draft && !release.prerelease) {
             for(const asset of release.assets) {
                 console.log(asset.name);
-              if(asset.name.match(/^setup-v.+\.exe$/)) {
+              if(asset.name.match(/^v.+\.zip$/)) {
                 const a = document.querySelector(".actions .action a");
                 if(a != null) {
                   a.innerText = `ダウンロード(${release.tag_name})`;

@@ -1,0 +1,73 @@
+name: sureyomichan-ci
+
+on:
+  push:
+    tags:
+      - 'v.*'
+      - 'pre.*'
+jobs:
+  build:
+    runs-on: windows-latest 
+    env:
+      DOTNET_CLI_TELEMETRY_OPTOUT: 1
+      PIPENV_VENV_IN_PROJECT: 1
+
+    steps:
+    - name: Check Tag Name
+      run: |
+        $text = "${{github.ref_name}}"
+        if ( !($text -match "^(v|pre)\.\d\d(\d\d)(\d\d\d\d)$") ) {
+          echo invalid tag name
+          exit 1
+        }
+
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: 10.0.x
+
+    - name: Setup MSBuild.exe
+      uses: microsoft/setup-msbuild@v1
+
+    - name: Build app
+      run: |
+        .\build.bat
+
+    - name: Update manifest
+      run: |
+        $text = "${{github.ref_name}}"
+        $text -match "^(v|pre)\.\d\d(\d\d)(\d\d\d\d)$"
+        $jsonContent = Get-Content -Path .\src\js-sureyomichan\manifest.json -Raw
+        $jsonObject = ConvertFrom-Json $jsonContent
+        $jsonObject.version = ""+$Matches[2]+"."+$Matches[3]
+        $jsonOutput = ConvertTo-Json $jsonObject
+        echo $jsonOutput > .\src\cs-sureyomichan\dist\chrome-extensions\manifest.json
+
+    - name: Create Artifact Zip
+      run: |
+        pushd src\cs-sureyomichan
+        Compress-Archive -Path dist -DestinationPath "sureyomichan.zip"
+        popd
+        move "src\cs-sureyomichan\sureyomichan.zip" "sureyomichan-${{github.ref_name}}.zip"
+
+    - name: Pre Release
+      uses: softprops/action-gh-release@v2
+      if: startsWith(github.ref, 'refs/tags/pre.')
+      with:
+        body: β:${{github.ref_name}}
+        files: |
+          sureyomichan-${{github.ref_name}}.zip
+        prerelease: true
+
+    - name: Release
+      uses: softprops/action-gh-release@v2
+      if: startsWith(github.ref, 'refs/tags/v.')
+      with:
+        body: リリース:${{github.ref_name}}
+        files: |
+          sureyomichan-${{github.ref_name}}.zip
