@@ -111,13 +111,12 @@ class AttachmentWriter {
 
 	public async Task Save(Models.SureyomiChanModel model, Models.AttachmentObject attachment) {
 		this.downloadToken = new();
-		this.uiDispatcher.Dispatch(x => x.DispatchStartDisplayTegakiPng());
-
 		var orig = attachment.OriginalFileBytes;
 		var image = attachment.ImageFileBytes;
 
 		if(orig is { } && image is { }) {
 			if(attachment.IsUpdatedTegakiPng) {
+				this.uiDispatcher.Dispatch(x => x.DispatchStartDisplayTegakiPng());
 				var tegakiPngPath = Path.Combine(
 					this.config.Get().PathDwonloadValue,
 					this.saveFileNamePng);
