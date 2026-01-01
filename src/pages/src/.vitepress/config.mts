@@ -5,6 +5,20 @@ export default defineConfig({
   base: "/Sureyomichan/",
   title: "スレ詠みちゃん",
   description: "",
+  head: [
+//    ["link", {rel: "icon", href: "/Sureyomichan/images/favicon.ico"}],
+    ["meta", {property: "twitter:card", content: "summary"}],
+    ["meta", {property: "twitter:site", content: "@HARUKei66494739"}],
+    ["meta", {property: "twitter:description", content: "img&amp;aimgのスレ読み上げツール"}],
+    ["meta", {property: "twitter:image", content: "https://harukei66494739.github.io/Sureyomichan/og.png"}],
+    ["meta", {property: "og:url", content: "https://harukei66494739.github.io/Sureyomichan/"}],
+    ["meta", {property: "og:type", content: "product"}],
+    ["meta", {property: "og:title", content: "スレ詠みちゃん"}],
+    ["meta", {property: "og:description", content: "img&amp;aimgのスレ読み上げツール"}],
+    ["meta", {property: "og:image", content: "https://harukei66494739.github.io/Sureyomichan/og.png"}],
+    ["meta", {property: "og:image:width", content: "64"}],
+    ["meta", {property: "og:image:height", content: "64"}],
+  ],
   themeConfig: {
     // https://vitepress.dev/reference/default-theme-config
     nav: [
