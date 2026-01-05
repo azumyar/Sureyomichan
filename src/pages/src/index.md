@@ -4,18 +4,20 @@ layout: home
 
 hero:
   name: "スレ詠みちゃん"
+  text: "Sureyomichan"
+  tagline: 某所のスレッドの読み上げを棒読みちゃんと連携して行います。
   actions:
       - theme: brand
         text: ダウンロード
         link: https://github.com/HARUKei66494739/Sureyomichan/releases
 
-#features:
-#  - title: Feature A
-#    details: Lorem ipsum dolor sit amet, consectetur adipiscing elit
-#  - title: Feature B
-#    details: Lorem ipsum dolor sit amet, consectetur adipiscing elit
-#  - title: Feature C
-#    details: Lorem ipsum dolor sit amet, consectetur adipiscing elit
+features:
+  - title: ⚙基本機能
+    details: 棒読みちゃんとの連携でスレッドの読み上げ。ファイルの自動取得。
+  - title: 💻動作環境
+    details: 動作には.NET Desktop Runtime v10の事前インストールが必要です。
+  - title: 📚その他
+    details: 今後良い感じに更新されるかもしれません。
 ---
 
 <script setup lang="ts">
