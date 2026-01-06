@@ -31,6 +31,14 @@ static class Util {
 			.AddSeconds(t)
 			.ToLocalTime();
 
+	/// <summary>UNIX時間(ミリ秒)から変換</summary>
+	/// <param name="t"></param>
+	/// <returns></returns>
+	public static DateTime FromUnixTimeMiliSeconds(long t)
+		=> new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc)
+			.AddMilliseconds(t)
+			.ToLocalTime();
+
 	/// <summary>UNIX時間(秒)に変換</summary>
 	/// <param name="d"></param>
 	/// <returns></returns>
