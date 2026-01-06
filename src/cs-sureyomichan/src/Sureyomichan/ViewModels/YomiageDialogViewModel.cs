@@ -226,8 +226,8 @@ internal class YomiageDialogViewModel : BindableBase, IDialogAware {
 							yomiage.EnqueueSpeak(m);
 						}
 					}
-					void yomiImage() {
-						if(!skip) {
+					void yomiImage(Models.AttachmentObject attachment) {
+						if(!skip && attachment.IsUpdatedTegakiPng) {
 							yomiage.SaveImage();
 						}
 					}
@@ -261,7 +261,7 @@ internal class YomiageDialogViewModel : BindableBase, IDialogAware {
 						if(!isNg) {
 							yomiSpeak(it);
 							if(attachment?.Attachment is { } att) {
-								yomiImage();
+								yomiImage(att);
 								await this.param.AttachmentWriter.Save(it, att);
 							}
 							if(this.param.Config.Get().IsEnabledUpFile) {

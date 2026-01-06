@@ -82,6 +82,7 @@ class NijiuraChanUrl : IApiUrl {
 			_ => $"https://nijiurachan.net/api/v1/thread/{threadNo}"
 		};
 	}
+
 	public string GenApiDelete() => "";
 	public string GenApiDel() => "";
 	public string GenImage(IAttachentData data) => $"";

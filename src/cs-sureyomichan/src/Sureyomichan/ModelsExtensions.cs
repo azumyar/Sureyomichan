@@ -1,5 +1,9 @@
+using Haru.Kei.SureyomiChan.Core;
+using Haru.Kei.SureyomiChan.Models;
 using System;
 using System.Collections.Generic;
+using System.Data.SqlTypes;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.Json.Serialization;
@@ -10,6 +14,10 @@ namespace Haru.Kei.SureyomiChan;
 
 static class ModelsExtensions {
 	private readonly static TimeZoneInfo jstZone = TimeZoneInfo.FindSystemTimeZoneById("Tokyo Standard Time");
+	private static string? stringnull(string s) => s switch {
+	{ } v when !string.IsNullOrEmpty(v) => v,
+		_ => null,
+	};
 
 	private static string Comment2Text(string com) {
 		var s1 = Regex.Replace(com, @"<br>", Environment.NewLine,
@@ -88,8 +96,8 @@ static class ModelsExtensions {
 	}
 
 	extension(Models.__FutabaResData source) {
-		public DateTime NowDateTime => long.TryParse(source.Time, out var v) switch {
-			true => Utils.Util.FromUnixTimeSeconds(v),
+		public DateTime PostDateTime => long.TryParse(source.Time, out var v) switch {
+			true => Utils.Util.FromUnixTimeMiliSeconds(v),
 			_ => DateTime.Now
 		};
 		public Models.SureyomiChanDeleteType DeleteType => source.Del.ToLower() switch {
@@ -100,6 +108,28 @@ static class ModelsExtensions {
 			_ => Models.SureyomiChanDeleteType.None,
 		};
 		public string FormatBody() => Comment2Text(source.Comment);
+		public Models.SureyomiChanModel ToSureyomiChanModel(int threadNo, Models.ISureyomiChanInteraction interaction) => new(
+			threadNo: threadNo,
+			resIndex: source.ResCount,
+			no: source.ResNoInt,
+			postTime: source.PostDateTime,
+			email: source.Email,
+			body: source.Comment,
+			id: string.IsNullOrEmpty(source.Id) switch {
+				true => null,
+				_ => source.Id
+			},
+			deleteType: source.DeleteType,
+
+			imageFileName: source.FileSource switch {
+				string v when !string.IsNullOrEmpty(v) => Path.GetFileName(v),
+				_ => null,
+			},
+			imageSource: stringnull(source.FileSource),
+			thumbnailSource: stringnull(source.FileThumb),
+
+			token: Utils.Util.Tokenize(source.FormatBody()),
+			interaction: interaction);
 	}
 
 	extension(Models.NijiuraChanThreadV1 source) {
@@ -110,6 +140,60 @@ static class ModelsExtensions {
 	extension(Models.NijiuraChanReplyV1 source) {
 		public DateTime CreatedAtDateTime => NijiuraChanTime2Local(source.CreatedAt);
 		public string FormatBody() => Comment2Text(source.Body);
+		public Models.SureyomiChanModel ToSureyomiChanModel(int threadNo, Models.ISureyomiChanInteraction interaction) => new(
+			threadNo: threadNo,
+			resIndex: source.Number,
+			no: source.Id,
+			postTime: source.CreatedAtDateTime,
+			email: "",
+			body: source.Body,
+			id: string.IsNullOrEmpty(source.PosterId) switch {
+				true => null,
+				_ => source.PosterId
+			},
+			deleteType: Models.SureyomiChanDeleteType.None,
+
+			imageFileName: source.Image switch {
+				string v when !string.IsNullOrEmpty(v) => Path.GetFileName(v),
+				_ => null,
+			},
+			imageSource: source.Image,
+			thumbnailSource: source.Thumb,
+
+			token: Utils.Util.Tokenize(source.FormatBody()),
+			interaction: interaction);
+	}
+
+	extension(Models.NijiuraChanThreadInternal source) {
+		public DateTime CreatedAtDateTime => NijiuraChanTime2Local(source.CreatedAt);
+		public DateTime ExpiresAtDateTime => NijiuraChanTime2Local(source.ExpiresAt);
+	}
+
+	extension(Models.NijiuraChanPostInternal source) {
+		public DateTime CreatedAtDateTime => NijiuraChanTime2Local(source.CreatedAt);
+		public string FormatBody() => Comment2Text(source.Body);
+		public Models.SureyomiChanModel ToSureyomiChanModel(int threadNo, Models.ISureyomiChanInteraction interaction) => new (
+			threadNo: threadNo,
+			resIndex: source.NumberInThread - 1,
+			no: source.Id,
+			postTime: source.CreatedAtDateTime,
+			email: "",
+			body: source.Body,
+			id: string.IsNullOrEmpty(source.PosterId) switch {
+				true => null,
+				_ => source.PosterId
+			},
+			deleteType: Models.SureyomiChanDeleteType.None,
+
+			imageFileName: source.Attachment?.Path switch {
+				string v when !string.IsNullOrEmpty(v) => Path.GetFileName(v),
+				_ => null,
+			},
+			imageSource: source.Attachment?.Path,
+			thumbnailSource: source.Attachment?.Thumbnail,
+
+			token: Utils.Util.Tokenize(source.FormatBody()),
+			interaction: interaction);
 	}
 
 	extension(Models.SureyomiChanDeleteType source) {

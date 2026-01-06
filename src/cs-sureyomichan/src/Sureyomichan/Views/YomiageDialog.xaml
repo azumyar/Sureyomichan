@@ -186,7 +186,6 @@
                                                     Grid.Row="1"
                                                     Stretch="UniformToFill"
                                                     MaxWidth="200"
-                                                    MaxHeight="200"
                                                     Margin="0"
                                                     >
                                                     <Image
