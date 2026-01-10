@@ -10,6 +10,9 @@ hero:
       - theme: brand
         text: ダウンロード
         link: https://github.com/HARUKei66494739/Sureyomichan/releases
+      - theme: alt
+        text: 使い方
+        link: /usage/
 
 features:
   - title: ⚙基本機能
