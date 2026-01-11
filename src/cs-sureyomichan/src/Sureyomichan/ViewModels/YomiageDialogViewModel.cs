@@ -186,6 +186,9 @@ internal class YomiageDialogViewModel : BindableBase, IDialogAware {
 			this.StopYomiage();
 			if(this.param is { }) {
 				this.param.Store.Clear(this.param.ThreadNo);
+				Utils.ImageUtil.ImageStore.Remove(
+					this.param.Url.Name,
+					this.param.ThreadNo);
 			}
 		}
 	}
@@ -267,6 +270,13 @@ internal class YomiageDialogViewModel : BindableBase, IDialogAware {
 							if(this.param.Config.Get().IsEnabledUpFile) {
 								var _ = this.param.AttachmentWriter.DownloadShio(it);
 							}
+						}
+						if(attachment?.Attachment is { } ao && ao.ImageFileBytes is { }) {
+							Utils.ImageUtil.ImageStore.Insert(
+								this.param.Url.Name,
+								this.param.ThreadNo,
+								ao.ImageName,
+								ao.ImageFileBytes);
 						}
 						disp.Add(new(it, attachment, dHash?.Value, isNg));
 						this.param.Store.Add(this.param.ThreadNo, it, isNg);

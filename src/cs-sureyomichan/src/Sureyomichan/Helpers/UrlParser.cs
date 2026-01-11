@@ -16,7 +16,7 @@ interface IApiUrl {
 	public string GenApiThread(int threadNo, int? latestNo);
 	public string GenApiDelete();
 	public string GenApiDel();
-	public string GenImage(Models.IAttachentData model);
+	public string GenImage(Models.IAttachmentData model);
 }
 
 class FutabaUrl : IApiUrl {
@@ -32,7 +32,8 @@ class FutabaUrl : IApiUrl {
 		this.boardName = boardName;
 	}
 
-	public string Name => this.domain;
+	// 他に影響するのでimgで固定
+	public string Name => SureyomiChanEnviroment.BoardImg;
 	public string GenUrlThread(int threadNo) => $"https://{domain}.2chan.net/{boardName}/res/{threadNo}.htm";
 	public int? ParseThreadNo(string url) {
 		var m = Regex.Match(url, @$"https://{domain}\.2chan\.net/{boardName}/res/([0-9]+)\.htm");
@@ -57,11 +58,11 @@ class FutabaUrl : IApiUrl {
 	public string GenApiDelete() => $"{FutabaEndPoint}?guid=on";
 	public string GenApiDel() => $"{FutabaDelEndPoint}";
 
-	public string GenImage(IAttachentData data) => $"https://{domain}.2chan.net/{data.AttachentImage}";
+	public string GenImage(IAttachmentData data) => $"https://{domain}.2chan.net/{data.AttachmentImage}";
 }
 
 class NijiuraChanUrl : IApiUrl {
-	public string Name => "aimg";
+	public string Name => SureyomiChanEnviroment.BoardAimg;
 	public string GenUrlThread(int threadNo) => $"https://nijiurachan.net/pc/thread.php?id={threadNo}";
 	public int? ParseThreadNo(string url) {
 		var m = Regex.Match(url, @$"https://nijiurachan\.net/pc/thread\.php\?id=([0-9]+)");
@@ -85,5 +86,5 @@ class NijiuraChanUrl : IApiUrl {
 
 	public string GenApiDelete() => "";
 	public string GenApiDel() => "";
-	public string GenImage(IAttachentData data) => $"";
+	public string GenImage(IAttachmentData data) => $"";
 }

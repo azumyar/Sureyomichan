@@ -30,7 +30,31 @@ class BindableSureyomiChanModel : INotifyPropertyChanged {
 
 	public IReadOnlyReactiveProperty<Visibility> ImageErrorVisibility { get; }
 	public IReadOnlyReactiveProperty<string?> ImageName { get; }
-	public ReactivePropertySlim<ImageObject?> Image { get; }
+
+	private WeakReference<ImageObject>? image = null;
+	public ImageObject? Image {
+		get {
+			if(!this.hasImage) {
+				return null;
+			}
+
+			if(this.image?.TryGetTarget(out var io) ?? false) {
+				return io;
+			}
+
+			var ib = Utils.ImageUtil.ImageStore.Get(
+				this.Model.Interaction.BoardName,
+				this.Model.ThreadNo,
+				this.imageKey);
+			if(ib is null) {
+				return null;
+			}
+
+			var r = LoadImage(this.imageKey, ib);
+			this.image = new WeakReference<ImageObject>(r);
+			return r;
+		}
+	}
 
 	public SureyomiChanModel Model { get; }
 
@@ -51,6 +75,8 @@ class BindableSureyomiChanModel : INotifyPropertyChanged {
 	private const int DeleteIntervalTimeMiliSec = 10;
 	private ReactivePropertySlim<bool> IsNg { get; }
 	private ReactivePropertySlim<Models.SureyomiChanDeleteType> DeleteType { get; }
+	private readonly bool hasImage;
+	private readonly string imageKey;
 
 	public BindableSureyomiChanModel(
 		SureyomiChanModel model,
@@ -77,7 +103,11 @@ class BindableSureyomiChanModel : INotifyPropertyChanged {
 			},
 			_ => Visibility.Collapsed,
 		});
-		this.Image = LoadImage(attachment?.Attachment, isNg);
+		this.hasImage = !isNg && attachment?.Attachment?.ImageFileBytes != null;
+		this.imageKey = attachment?.Attachment switch {
+			{ } v when !string.IsNullOrEmpty(v.ImageName) => v.ImageName,
+			_ => ""
+		};
 		this.IsNg = new(initialValue: isNg);
 		this.DeleteType = new(initialValue: model.DeleteType);
 
@@ -161,28 +191,13 @@ class BindableSureyomiChanModel : INotifyPropertyChanged {
 		return s3;
 	}
 
-	private static ReactivePropertySlim<ImageObject?> LoadImage(AttachmentObject? image, bool isNg) {
-		var r = new ReactivePropertySlim<ImageObject?>(initialValue: null);
-		if(!isNg && image?.ImageFileBytes != null) {
-			Observable.Return(0)
-				.ObserveOn(Reactive.Bindings.UIDispatcherScheduler.Default)
-				//.ObserveOn(System.Reactive.Concurrency.ThreadPoolScheduler.Instance)
-				.Select(_ => {
-						return Path.GetExtension(image.ImageName).ToLower() switch {
-							".png" => Utils.ImageUtil.LoadPng(image.ImageFileBytes),
-							".webp" => Utils.ImageUtil.LoadWebp(image.ImageFileBytes),
-							".gif" => Utils.ImageUtil.LoadGif(image.ImageFileBytes),
-							_ => new ImageObject(BitmapFrame.Create(new MemoryStream(image.ImageFileBytes)))
-						};
-				})
-				//.ObserveOn(Reactive.Bindings.UIDispatcherScheduler.Default)
-				.Subscribe(
-					x => r.Value = x,
-					ex => {
-						Utils.Logger.Instance.Error(ex);
-					});
-		}
-		return r;
+	private static ImageObject LoadImage(string imageName, byte[] imageBytes) {
+		return Path.GetExtension(imageName).ToLower() switch {
+			".png" => Utils.ImageUtil.LoadPng(imageBytes),
+			".webp" => Utils.ImageUtil.LoadWebp(imageBytes),
+			".gif" => Utils.ImageUtil.LoadGif(imageBytes),
+			_ => new ImageObject(BitmapFrame.Create(new MemoryStream(imageBytes)))
+		};
 	}
 }
 

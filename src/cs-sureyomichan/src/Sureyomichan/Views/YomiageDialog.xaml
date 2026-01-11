@@ -189,19 +189,19 @@
                                                     Margin="0"
                                                     >
                                                     <Image
-                                                        Source="{Binding Image.Value.ImageSource}"
+                                                        Source="{Binding Image.ImageSource}"
                                                         RenderOptions.EdgeMode="Aliased"
                                                         RenderOptions.BitmapScalingMode="Fant">
                                                         <Image.CacheMode>
                                                             <BitmapCache RenderAtScale="1" />
                                                         </Image.CacheMode>
                                                         <i:Interaction.Behaviors>
-                                                            <b:ImageBehavior Source="{Binding Image.Value, Mode=OneWay}" />
+                                                            <b:ImageBehavior Source="{Binding Image, Mode=OneWay}" />
                                                         </i:Interaction.Behaviors>
                                                     </Image>
 
                                                     <i:Interaction.Triggers>
-                                                        <i:DataTrigger Binding="{Binding Image.Value}" Value="{x:Null}" Comparison="Equal">
+                                                        <i:DataTrigger Binding="{Binding Image}" Value="{x:Null}" Comparison="Equal">
                                                             <i:ChangePropertyAction PropertyName="Margin" Value="0,0,16,0" />
                                                         </i:DataTrigger>
                                                     </i:Interaction.Triggers>

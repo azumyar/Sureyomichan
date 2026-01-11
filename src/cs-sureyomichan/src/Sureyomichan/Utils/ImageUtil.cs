@@ -1,4 +1,6 @@
 
+using LibAPNG;
+using LibAPNG.WPF;
 using LiteDB;
 using Lucene.Net.Documents;
 using System;
@@ -14,9 +16,6 @@ using System.Windows.Forms;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
 using System.Windows.Media.Imaging;
-
-using LibAPNG;
-using LibAPNG.WPF;
 using WpfAnimatedGif;
 using WpfAnimatedGif.Decoding;
 
@@ -27,60 +26,80 @@ using ImgObj = Haru.Kei.SureyomiChan.Models.Bindables.ImageObject;
 
 namespace Haru.Kei.SureyomiChan.Utils;
 
-class ImageCache {
-	public required string FileName { get; set; }
-	public required byte[] ImageBytes { get; set; }
-}
-
 internal class ImageUtil {
-#if false
-	public class Database {
-		private LiteDatabase db;
-		private string imageCache;
+	class ImageStoreImpl : Models.IImageStore {
+		private const string CacheFile = "image-cache.db";
+		private const string CacheTable = "image";
+		private string __DbFile => Path.Combine(AppContext.BaseDirectory, CacheFile);
 
-		public Database() {
-			db = new LiteDatabase(Path.Combine(AppContext.BaseDirectory, "cache.db"));
-
-			var pid = System.Diagnostics.Process.GetCurrentProcess().Id;
-			var dateTime = DateTime.Now;
-			var unix = Utils.Util.ToUnixTimeSeconds(dateTime);
-
-			var h1 = $"{pid:x}";
-			var h2 = $"{unix:x}";
-			imageCache = $"image_{h1}_{h2}";
-
-			var tables = db.GetCollection<Table>("table");
-			tables.Insert(new Table() {
-				pid = pid,
-				dateTime = DateTime.Now,
-				name = imageCache
-			});
-
-			foreach(var entry in tables.FindAll()) {
-				Console.WriteLine(entry.name);
+		public ImageStoreImpl() {
+			if(File.Exists(this.__DbFile)) {
+				try {
+					File.Delete(this.__DbFile);
+				}
+				catch { }
 			}
+		}
 
+		public byte[]? Get(string board, int threadNo, string imageName) {
+			try {
+				using var db = new LiteDatabase(__DbFile);
+				var ic = db.GetCollection<CacheObject>(CacheTable)
+					.FindOne(x => (x.Board == board)
+						&& (x.ThreadNo == threadNo)
+						&& (x.FileName == imageName));
+				return ic?.ImageBytes;
+			}
+			catch(LiteDB.LiteException e) {
+				Logger.Instance.Error(e);
+				return null;
+			}
+		}
 
+		public void Insert(string board, int threadNo, string imageName, byte[] imageBytes) {
+			using var db = new LiteDatabase(__DbFile);
+			db.BeginTrans();
+			try {
+				db.GetCollection<CacheObject>(CacheTable)
+					.Insert(new CacheObject() {
+						Board = board,
+						ThreadNo = threadNo,
+						Time = DateTime.Now,
+						ImageBytes = imageBytes,
+						FileName = imageName
+					});
+				db.Commit();
+			}
+			catch(LiteDB.LiteException e) {
+				Logger.Instance.Error(e);
+				db.Rollback();
+			}
+		}
+
+		public void Remove(string board, int threadNo) {
+			using var db = new LiteDatabase(__DbFile);
+			db.BeginTrans();
+			try {
+				db.GetCollection<CacheObject>(CacheTable)
+					.DeleteMany(x => (x.Board == board) && (x.ThreadNo == threadNo));
+				db.Commit();
+			}
+			catch(LiteDB.LiteException e) {
+				Logger.Instance.Error(e);
+				db.Rollback();
+			}
 		}
 	}
 
-
-	class Table {
-		public required int pid { get; set; }
-		public required DateTime dateTime { get; set; }
-		public string name { get; set; }
-	}
-
-
-	public static Database Db {
+	public static Models.IImageStore ImageStore {
 		get {
 			if(field == null) {
-				field = new Database();
+				field = new ImageStoreImpl();
 			}
 			return field;
 		}
 	}
-#endif
+
 	public static ImgObj LoadPng(byte[] image) {
 		// 8bitインデックスカラーPNGが読めないので対策する
 		static Stream fixIndexdPng(byte[] imageBytes) {
@@ -308,4 +327,11 @@ internal class ImageUtil {
 			_ => null
 		};
 	}
+}
+file class CacheObject {
+	public string Board { get; set; } = "";
+	public int ThreadNo { get; set; }
+	public DateTime Time { get; set; }
+	public string FileName { get; set; } = "";
+	public byte[] ImageBytes { get; set; } = new byte[0];
 }

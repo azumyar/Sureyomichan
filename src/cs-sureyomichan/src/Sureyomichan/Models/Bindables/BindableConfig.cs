@@ -17,7 +17,7 @@ class BindableConfig : System.ComponentModel.INotifyPropertyChanged {
 	public ReactiveProperty<Visibility> InitialSettingVisibility { get; } = new(initialValue: Visibility.Collapsed);
 
 
-	public ReactivePropertySlim<string> SaveSubFolderName { get; } = new(initialValue: "$Thread");
+	public ReactivePropertySlim<string> SaveSubFolderName { get; } = new(initialValue: "$Board$Thread");
 	public ReactivePropertySlim<bool> IsSaveAttachmentFile { get; } = new(initialValue: false);
 	public ReactivePropertySlim<bool> IsSaveUpFile { get; } = new(initialValue: false);
 	public ReactivePropertySlim<bool> SaveThreadNo { get; } = new(initialValue: false);
