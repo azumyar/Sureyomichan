@@ -62,9 +62,9 @@
                                                     CanContentScroll="True"
                                                     Margin="0"
                                                     Focusable="false">
-                                                    <Border Margin="0,138,0,32">
-                                                        <ItemsPresenter />
-                                                    </Border>
+                                                    <ItemsPresenter
+                                                        Margin="0,138,0,32"
+                                                        />
                                                 </ScrollViewer>
                                             </Grid>
                                         </Grid>
