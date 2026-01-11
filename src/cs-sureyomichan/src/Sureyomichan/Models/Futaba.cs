@@ -55,7 +55,7 @@ class FutabaResponse : JsonObject {
 			.ToArray();
 }
 
-class FutabaResData : JsonObject, IAttachentData {
+class FutabaResData : JsonObject, IAttachmentData {
 	[JsonPropertyName("com")]
 	[JsonInclude]
 	public string Comment { get; protected set; } = "";
@@ -106,7 +106,7 @@ class FutabaResData : JsonObject, IAttachentData {
 	public int FileWidth { get; protected set; }
 
 	[JsonIgnore]
-	public string AttachentImage {
+	public string AttachmentImage {
 		get {
 			var extension = this.FileExtension.ToLower();
 			var webp = extension == ".webp";

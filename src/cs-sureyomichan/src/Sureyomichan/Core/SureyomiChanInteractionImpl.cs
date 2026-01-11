@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 namespace Haru.Kei.SureyomiChan.Core;
 
 class FutabaInteraction(string url, Models.__FutabaResData source, Helpers.FutabaApi api, IConfigProxy config) : Models.ISureyomiChanInteraction {
-	public string BoardName => "img";
+	public string BoardName => SureyomiChanEnviroment.BoardImg;
 	public bool IsSupportSendDel => true;
 	public bool IsSupportDeleteRes => true;
 
@@ -33,7 +33,7 @@ class FutabaInteraction(string url, Models.__FutabaResData source, Helpers.Futab
 }
 
 class NijiuraChanInteraction(string url, Models.NijiuraChanReplyV1 source, Helpers.NijiuraChanApi? api, IConfigProxy config) : Models.ISureyomiChanInteraction {
-	public string BoardName => "aimg";
+	public string BoardName => SureyomiChanEnviroment.BoardAimg;
 	public bool IsSupportSendDel => false;
 	public bool IsSupportDeleteRes => false;
 
@@ -48,7 +48,7 @@ class NijiuraChanInteraction(string url, Models.NijiuraChanReplyV1 source, Helpe
 }
 
 class NijiuraChanInternalInteraction(string url, Models.NijiuraChanPostInternal source, Helpers.NijiuraChanApi? api, IConfigProxy config) : Models.ISureyomiChanInteraction {
-	public string BoardName => "aimg";
+	public string BoardName => SureyomiChanEnviroment.BoardAimg;
 	public bool IsSupportSendDel => false;
 	public bool IsSupportDeleteRes => false;
 
