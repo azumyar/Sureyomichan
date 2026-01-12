@@ -18,7 +18,7 @@ class Logger {
 	public Logger() {
 		try {
 			this.logWriter = new System.IO.FileStream(
-				SureyomiChanEnviroment.GetStaticPath(SureyomiChanStaticItem.LogFile),
+				SureyomiChanEnviroment.GetStaticString(SureyomiChanStaticItem.LogFile),
 				System.IO.FileMode.OpenOrCreate,
 				System.IO.FileAccess.ReadWrite,
 				System.IO.FileShare.ReadWrite);

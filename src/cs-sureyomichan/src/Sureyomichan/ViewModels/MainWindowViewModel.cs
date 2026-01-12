@@ -136,7 +136,7 @@ class MainWindowViewModel : BindableBase {
 	private void LoadConfig() {
 		// 動けばいいやの実装
 		try {
-			var json = File.ReadAllText(SureyomiChanEnviroment.GetStaticPath(SureyomiChanStaticItem.ConfigFile));
+			var json = File.ReadAllText(SureyomiChanEnviroment.GetStaticString(SureyomiChanStaticItem.ConfigFile));
 			var cm = JsonSerializer.Deserialize<ConfigObject>(json);
 			if((cm?.Version ?? 0) < Config.CurrentVersion) {
 				// TODO: マイグレ

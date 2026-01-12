@@ -302,7 +302,7 @@ class AttachmentWriter {
 
 	private string GetSaveDirectoryName(Models.SureyomiChanModel model) {
 		var sb = new StringBuilder(this.config.Get().SaveSubFolderName);
-		sb.Replace("$Board", $"{model.Interaction.BoardName}");
+		sb.Replace("$Board", $"{SureyomiChanEnviroment.GetStaticString(model.Interaction.BoardId)}");
 		sb.Replace("$Thread", $"{model.ThreadNo}");
 		return sb.ToString();
 	}

@@ -9,7 +9,7 @@ using System.Threading;
 namespace Haru.Kei.SureyomiChan.Helpers;
 
 interface IApiUrl {
-	public string Name { get; }
+	public SureyomiChanBoardId BoardId { get; }
 	public string GenUrlThread(int threadNo);
 	public bool IsValidUrl(string url) => this.ParseThreadNo(url) != null;
 	public int? ParseThreadNo(string url);
@@ -33,7 +33,7 @@ class FutabaUrl : IApiUrl {
 	}
 
 	// 他に影響するのでimgで固定
-	public string Name => SureyomiChanEnviroment.BoardImg;
+	public SureyomiChanBoardId BoardId => SureyomiChanBoardId.FutabaImg;
 	public string GenUrlThread(int threadNo) => $"https://{domain}.2chan.net/{boardName}/res/{threadNo}.htm";
 	public int? ParseThreadNo(string url) {
 		var m = Regex.Match(url, @$"https://{domain}\.2chan\.net/{boardName}/res/([0-9]+)\.htm");
@@ -62,7 +62,7 @@ class FutabaUrl : IApiUrl {
 }
 
 class NijiuraChanUrl : IApiUrl {
-	public string Name => SureyomiChanEnviroment.BoardAimg;
+	public SureyomiChanBoardId BoardId => SureyomiChanBoardId.NijiuraChanAimg;
 	public string GenUrlThread(int threadNo) => $"https://nijiurachan.net/pc/thread.php?id={threadNo}";
 	public int? ParseThreadNo(string url) {
 		var m = Regex.Match(url, @$"https://nijiurachan\.net/pc/thread\.php\?id=([0-9]+)");

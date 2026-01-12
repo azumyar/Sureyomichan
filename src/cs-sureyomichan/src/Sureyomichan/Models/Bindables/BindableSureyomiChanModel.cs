@@ -43,7 +43,7 @@ class BindableSureyomiChanModel : INotifyPropertyChanged {
 			}
 
 			var ib = Utils.ImageUtil.ImageStore.Get(
-				this.Model.Interaction.BoardName,
+				SureyomiChanEnviroment.GetStaticString(this.Model.Interaction.BoardId),
 				this.Model.ThreadNo,
 				this.imageKey);
 			if(ib is null) {
