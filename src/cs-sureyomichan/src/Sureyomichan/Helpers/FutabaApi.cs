@@ -79,7 +79,7 @@ class FutabaApi {
 		return r == "ok";
 	}
 
-	public async Task<byte[]> DonwloadImage(Models.IAttachentData model) {
+	public async Task<byte[]> DonwloadImage(Models.IAttachmentData model) {
 		using var response = await Utils.Util.Http(() => httpClient.GetAsync(this.apiUrl.GenImage(model)));
 		return await response.Content.ReadAsByteArrayAsync();
 	}

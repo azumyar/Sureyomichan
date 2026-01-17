@@ -23,7 +23,7 @@ internal static class SureyomiChanEnviroment {
 	public static int CopyDataTypeCommandArgs => 1;
 
 
-	public static string GetStaticPath(SureyomiChanStaticItem target) {
+	public static string GetStaticString(SureyomiChanStaticItem target) {
 		return target switch {
 			SureyomiChanStaticItem.ConfigFile => GetPathConfig(),
 			SureyomiChanStaticItem.LogFile => GetPathLog(),
@@ -31,7 +31,15 @@ internal static class SureyomiChanEnviroment {
 		};
 	}
 
-	public static string GetDynamicPath(SureyomiChanDynamicItem target, Models.Config config) {
+	public static string GetStaticString(SureyomiChanBoardId target) {
+		return target switch {
+			SureyomiChanBoardId.FutabaImg => "img",
+			SureyomiChanBoardId.NijiuraChanAimg => "aimg",
+			_ => throw new Exception(),
+		};
+	}
+
+	public static string GetDynamicString(SureyomiChanDynamicItem target, Models.Config config) {
 		return target switch {
 			//SureyomiChanDynamicItem.OriginalSavePath => GetPathConfig(config),
 			_ => throw new Exception(),
@@ -45,7 +53,12 @@ internal static class SureyomiChanEnviroment {
 
 enum SureyomiChanStaticItem {
 	ConfigFile,
-	LogFile
+	LogFile,
+}
+
+enum SureyomiChanBoardId {
+	FutabaImg,
+	NijiuraChanAimg
 }
 
 enum SureyomiChanDynamicItem {
