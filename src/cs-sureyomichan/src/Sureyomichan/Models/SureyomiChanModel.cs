@@ -45,7 +45,7 @@ class SureyomiChanModel(
 	public string Email { get; } = email;
 	public string Body { get; } = body;
 	public string? Id { get; } = id;
-	public bool IsId { get; } = id is not null;
+	public bool HasId { get; } = id is not null;
 
 	public SureyomiChanDeleteType DeleteType { get; } = deleteType;
 
@@ -63,7 +63,7 @@ interface ISureyomiChanFeature {
 }
 
 interface ISureyomiChanInteraction {
-	string BoardName { get; }
+	SureyomiChanBoardId BoardId { get; }
 	bool IsSupportSendDel { get; }
 	bool IsSupportDeleteRes { get; }
 

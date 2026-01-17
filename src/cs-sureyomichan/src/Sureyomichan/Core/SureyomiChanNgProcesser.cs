@@ -9,7 +9,7 @@ class SureyomiChanNgProcesser(WebView2Proxy webView2, ConfigProxy config) {
 
 	public async Task<bool> IsNgFromBody(Models.SureyomiChanModel m) {
 		var con = config.Get();
-		if(m.IsId && con.NonReadId) {
+		if(m.HasId && con.NonReadId) {
 			return await Task.FromResult(true);
 		}
 
