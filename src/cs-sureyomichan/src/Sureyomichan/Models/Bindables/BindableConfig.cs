@@ -141,7 +141,7 @@ class BindableConfig : System.ComponentModel.INotifyPropertyChanged {
 			OpenWebViewDevTool = this.OpenWebViewDevTool.Value,
 		};
 		try {
-			File.WriteAllText(SureyomiChanEnviroment.GetStaticPath(SureyomiChanStaticItem.ConfigFile), config.ToString());
+			File.WriteAllText(SureyomiChanEnviroment.GetStaticString(SureyomiChanStaticItem.ConfigFile), config.ToString());
 		}
 		catch(Exception ex) { }
 		return config;

@@ -187,7 +187,7 @@ internal class YomiageDialogViewModel : BindableBase, IDialogAware {
 			if(this.param is { }) {
 				this.param.Store.Clear(this.param.ThreadNo);
 				Utils.ImageUtil.ImageStore.Remove(
-					this.param.Url.Name,
+					SureyomiChanEnviroment.GetStaticString(this.param.Url.BoardId),
 					this.param.ThreadNo);
 			}
 		}
@@ -209,7 +209,7 @@ internal class YomiageDialogViewModel : BindableBase, IDialogAware {
 			return false;
 		}
 
-		Utils.Logger.Instance.Info($"読み上げを開始します => {this.param.Url.Name}, {this.param.ThreadNo}");
+		Utils.Logger.Instance.Info($"読み上げを開始します => {SureyomiChanEnviroment.GetStaticString(this.param.Url.BoardId)}, {this.param.ThreadNo}");
 		var yomiage = new Core.Yomiage(this.param.Bouyomi, this.param.Config);
 		this.ThreadDieText.Value = "";
 		try {
@@ -273,7 +273,7 @@ internal class YomiageDialogViewModel : BindableBase, IDialogAware {
 						}
 						if(attachment?.Attachment is { } ao && ao.ImageFileBytes is { }) {
 							Utils.ImageUtil.ImageStore.Insert(
-								this.param.Url.Name,
+								SureyomiChanEnviroment.GetStaticString(this.param.Url.BoardId),
 								this.param.ThreadNo,
 								ao.ImageName,
 								ao.ImageFileBytes);
@@ -299,7 +299,7 @@ internal class YomiageDialogViewModel : BindableBase, IDialogAware {
 		}
 		catch(NotSupportedException e) {
 			// URLが不正
-			this.EnqueueErrorMessage($"[{this.param.Url.Name}]はサポートされていない読み上げURLです");
+			this.EnqueueErrorMessage($"[{SureyomiChanEnviroment.GetStaticString(this.param.Url.BoardId)}]はサポートされていない読み上げURLです");
 			Utils.Logger.Instance.Error(e);
 
 			return false;
