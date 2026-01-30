@@ -76,8 +76,8 @@ class MainWindowViewModel : BindableBase {
 
 	private readonly IDialogService dialogService;
 
-	public MainWindowViewModel(IDialogService navigationService) {
-		this.dialogService = navigationService;
+	public MainWindowViewModel(IDialogService dialogService) {
+		this.dialogService = dialogService;
 		this.FutabaUrl = Utils.Singleton.Instance.FutabaUrl;
 		this.NijiuraChanUrl = Utils.Singleton.Instance.NijiuraChanUrl;
 		this.attachmentWriter = new(config: this.config, uiDispatcher: this.uiDispatcher);
