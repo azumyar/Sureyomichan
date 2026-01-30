@@ -2,7 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Haru.Kei.SureyomiChan.Models; 
+namespace Haru.Kei.SureyomiChan.Models;
+
+interface IMigration<T> {
+	public T Migrate();
+}
 
 interface IAttachmentData {
 	public string AttachmentImage { get; }
