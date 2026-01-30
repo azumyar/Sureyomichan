@@ -1,7 +1,9 @@
 using Haru.Kei.SureyomiChan.Exceptions;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Reactive.Linq;
+using System.Security.Cryptography;
 using System.Text;
 
 using Proc = System.Diagnostics.Process;
@@ -14,6 +16,7 @@ class Logger {
 	private System.Reactive.Concurrency.EventLoopScheduler LogScheduler { get; } = new();
 	private System.IO.FileStream? logWriter;
 	private bool inited = false;
+	private readonly MemoryStream beforeLog = new();
 
 	public Logger() {
 		try {
@@ -31,6 +34,17 @@ class Logger {
 	public void Init() {
 		this.inited = true;
 		this.logWriter?.SetLength(0);
+		if(0 < this.beforeLog.Length) {
+			Observable.Return(this.beforeLog.ToArray())
+				.ObserveOn(LogScheduler)
+				.Subscribe(x => {
+					if(this.inited) {
+						this.logWriter?.Write(x);
+						this.logWriter?.Flush();
+					}
+				});
+			this.beforeLog.SetLength(0);
+		}
 	}
 
 	public void Info(string i) => this.Write("i", i);
@@ -68,9 +82,13 @@ class Logger {
 			.ObserveOn(LogScheduler)
 			.Subscribe(x => {
 				Console.WriteLine(x);
-				if(this.inited) {
-					this.logWriter?.Write(Encoding.UTF8.GetBytes($"{x}\r\n"));
-					this.logWriter?.Flush();
+				Stream? stream = this.inited switch {
+					true => this.logWriter,
+					_ => this.beforeLog
+				};
+				if(stream is { }) {
+					stream.Write(Encoding.UTF8.GetBytes($"{x}\r\n"));
+					stream.Flush();
 				}
 			});
 	}
