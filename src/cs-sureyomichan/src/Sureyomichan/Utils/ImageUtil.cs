@@ -1,13 +1,14 @@
 
+using ImageMagick;
 using LibAPNG;
 using LibAPNG.WPF;
 using LiteDB;
-using Lucene.Net.Documents;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using System.Net.NetworkInformation;
 using System.Reactive;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -18,7 +19,6 @@ using System.Windows.Media.Animation;
 using System.Windows.Media.Imaging;
 using WpfAnimatedGif;
 using WpfAnimatedGif.Decoding;
-
 using GdipBitmap = System.Drawing.Bitmap;
 using GdipGraphics = System.Drawing.Graphics;
 using GdipImage = System.Drawing.Image;
@@ -256,27 +256,6 @@ internal class ImageUtil {
 	}
 
 	public static ImgObj LoadWebp(byte[] image) {
-		static IEnumerable<int> keyframe(byte[] image) {
-			List<int> delay = new List<int>();
-
-			// WEBP
-			if(System.Text.Encoding.ASCII.GetString(image, 0, 4).Equals("RIFF")) {
-				for(int i = 12; i < image.Length - 8; i += 8) {
-					string chname = System.Text.Encoding.ASCII.GetString(image, i, 4);
-					int chsize = BitConverter.ToInt32(image, i + 4);
-
-					if(chname.Equals("ANMF")) {
-						int offset = i + 8 + 12;
-						byte[] dbuff = { image[offset], image[offset + 1], image[offset + 2], 0 };
-						delay.Add(BitConverter.ToInt32(dbuff, 0));
-					}
-					i += chsize;
-				}
-			}
-
-			return delay.AsReadOnly();
-		}
-
 		using var ms = new MemoryStream(image);
 		var d = BitmapDecoder.Create(
 			ms,
@@ -286,7 +265,7 @@ internal class ImageUtil {
 		if(d.Frames.Count == 1) {
 			return new ImgObj(img);
 		} else {
-			var kf = keyframe(image);
+			var kf = GetAwebpKeyFrame(image);
 			if(kf.Count() != d.Frames.Count) {
 				Utils.Logger.Instance.Error("フレーム数が一致しません");
 			}
@@ -327,7 +306,114 @@ internal class ImageUtil {
 			_ => null
 		};
 	}
+
+	public static bool ConvertApng2Gif(byte[] image, string rootPath, string outFileNameWithoutExt) {
+		try {
+			var apng = new LibAPNG.APNG(image);
+			if(!apng.IsSimplePNG) {
+				using var mg = new MagickImageCollection();
+				foreach(var img in apng.ToBitmapSources().Cast<WriteableBitmap>().Select((x, i) => (Image: x, Index: i))) {
+					using var ms = new MemoryStream();
+					BitmapEncoder enc = new PngBitmapEncoder();
+					enc.Frames.Add(BitmapFrame.Create(img.Image));
+					enc.Save(ms);
+					ms.Position = 0;
+					mg.Add(new MagickImage(ms));
+					mg[img.Index].AnimationIterations = 0;
+					mg[img.Index].AnimationDelay = (uint)(apng.Frames[img.Index].fcTLChunk.DelayNum switch {
+						0 => 100,
+						_ => (double)apng.Frames[img.Index].fcTLChunk.DelayNum / apng.Frames[img.Index].fcTLChunk.DelayDen switch {
+							0 => 100,
+							var v => v + 0.5
+						} * 100
+					});
+				}
+				mg.Quantize(new QuantizeSettings() {
+					Colors = 256
+				});
+				mg.Optimize();
+				mg.Write(Path.Combine(rootPath, $"{outFileNameWithoutExt}.gif"));
+				return true;
+			} else {
+				return false;
+			}
+		}
+		catch(Exception ex) {
+			throw new Exceptions.ImageConvertException("APNG2GIFでエラー", ex);
+		}
+	}
+
+
+	public static bool ConvertAwebp2Gif(byte[] image, string rootPath, string outFileNameWithoutExt) {
+		try {
+			using var imageStream = new MemoryStream(image);
+			var d = BitmapDecoder.Create(
+				imageStream,
+				BitmapCreateOptions.None,
+				BitmapCacheOption.OnLoad);
+			if(1 < d.Frames.Count) {
+				var kf = GetAwebpKeyFrame(image);
+
+				if(d.Frames.Count != kf.Count()) {
+					throw new InvalidOperationException("フレーム数が一致しません");
+				}
+
+				using var mg = new MagickImageCollection();
+				foreach(var img in d.Frames.Select((x, i) => (Image: x, Index: i))) {
+					using var ms = new MemoryStream();
+					BitmapEncoder enc = new PngBitmapEncoder();
+					enc.Frames.Add(img.Image);
+					enc.Save(ms);
+					ms.Position = 0;
+					mg.Add(new MagickImage(ms));
+					mg[img.Index].AnimationIterations = 0;
+					mg[img.Index].AnimationDelay = (uint)((double)kf.ElementAt(img.Index) / 10 + 0.5);
+				}
+				mg.Quantize(new QuantizeSettings() {
+					Colors = 256
+				});
+				mg.Optimize();
+				mg.Write(Path.Combine(rootPath, $"{outFileNameWithoutExt}.gif"));
+				return true;
+			} else {
+				using var fs = new FileStream(
+					Path.Combine(rootPath, $"{outFileNameWithoutExt}.png"),
+					FileMode.OpenOrCreate);
+				BitmapEncoder enc = new PngBitmapEncoder();
+				enc.Frames.Add(BitmapFrame.Create(d.Frames.First()));
+				enc.Save(fs);
+				return true;
+			}
+		}
+		catch(Exception ex) {
+			throw new Exceptions.ImageConvertException("AWEBP2GIFでエラー", ex);
+		}
+	}
+
+	private static IEnumerable<int> GetAwebpKeyFrame(byte[] image) {
+		List<int> delay = new List<int>();
+
+		// WEBP
+		if(System.Text.Encoding.ASCII.GetString(image, 0, 4).Equals("RIFF")) {
+			for(int i = 12; i < image.Length - 8; i += 8) {
+				string chname = System.Text.Encoding.ASCII.GetString(image, i, 4);
+				int chsize = BitConverter.ToInt32(image, i + 4);
+
+				if(chname.Equals("ANMF")) {
+					int offset = i + 8 + 12;
+					byte[] dbuff = { image[offset], image[offset + 1], image[offset + 2], 0 };
+					delay.Add(BitConverter.ToInt32(dbuff, 0));
+				}
+				i += chsize;
+			}
+		}
+
+		return delay.AsReadOnly();
+	}
+
 }
+
+
 file class CacheObject {
 	public string Board { get; set; } = "";
 	public int ThreadNo { get; set; }
