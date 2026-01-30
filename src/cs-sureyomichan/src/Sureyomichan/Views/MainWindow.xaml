@@ -213,6 +213,11 @@
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="4" />
                         <RowDefinition Height="Auto" />
+
+                        <RowDefinition Height="36" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="4" />
+                        <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
 
                     <TextBlock
@@ -265,6 +270,7 @@
                                 <ColumnDefinition Width="*" />
                             </Grid.ColumnDefinitions>
                             <Grid.RowDefinitions>
+                                <RowDefinition MinHeight="56" />
                                 <RowDefinition MinHeight="56" />
                                 <RowDefinition MinHeight="56" />
                                 <RowDefinition MinHeight="56" />
@@ -356,7 +362,7 @@
                                 Style="{StaticResource MaterialDesignSwitchLightToggleButton}"
                                 HorizontalAlignment="Right"
                                 VerticalAlignment="Center"
-                                ToolTip="MaterialDesignSwitchLightToggleButton"
+                                ToolTip="レスに添付されたファイルを保存します　これは手書き以外のファイルも含みます"
                                 IsChecked="{Binding IsSaveAttachmentFile.Value, Mode=TwoWay}"
                                 />
 
@@ -374,19 +380,37 @@
                                 Style="{StaticResource MaterialDesignSwitchLightToggleButton}"
                                 HorizontalAlignment="Right"
                                 VerticalAlignment="Center"
-                                ToolTip="MaterialDesignSwitchLightToggleButton"
+                                ToolTip="レス本文に含まれるあぷ/あぷ小のファイルを判定してダウンロードします"
                                 IsChecked="{Binding IsSaveUpFile.Value, Mode=TwoWay}"
+                                />
+
+                            <TextBlock
+                                Grid.Column="0"
+                                Grid.Row="5"
+                                Style="{StaticResource MaterialDesignBody1TextBlock}"
+                                VerticalAlignment="Top"
+                                Text="OBS用に画像を変換する"
+                                TextWrapping="Wrap"
+                                />
+                            <ToggleButton
+                                Grid.Column="1"
+                                Grid.Row="5"
+                                Style="{StaticResource MaterialDesignSwitchLightToggleButton}"
+                                HorizontalAlignment="Right"
+                                VerticalAlignment="Center"
+                                ToolTip="レスの添付画像とあぷのファイルがapng, webp, awebpの場合OBSで表示できる画像形式に変換します"
+                                IsChecked="{Binding IsEnabledConvertObs.Value, Mode=TwoWay}"
                                 />
 
                             <Separator
                                 Grid.Column="0" Grid.ColumnSpan="2"
-                                Grid.Row="5"
+                                Grid.Row="6"
                                 Margin="16,8,16,8"
                                 Style="{StaticResource MaterialDesignDarkSeparator}" />
 
                             <TextBlock
                                 Grid.Column="0"
-                                Grid.Row="6"
+                                Grid.Row="7"
                                 Style="{StaticResource MaterialDesignBody1TextBlock}"
                                 VerticalAlignment="Top"
                                 Text="スレッドNoのtxtを保存する"
@@ -394,7 +418,7 @@
                                 />
                             <ToggleButton
                                 Grid.Column="1"
-                                Grid.Row="6"
+                                Grid.Row="7"
                                 Style="{StaticResource MaterialDesignSwitchLightToggleButton}"
                                 HorizontalAlignment="Right"
                                 VerticalAlignment="Center"
@@ -403,7 +427,7 @@
 
                             <TextBlock
                                 Grid.Column="0"
-                                Grid.Row="7"
+                                Grid.Row="8"
                                 Style="{StaticResource MaterialDesignBody1TextBlock}"
                                 VerticalAlignment="Top"
                                 Text="スレが落ちたらtxtを変える"
@@ -411,20 +435,20 @@
                                 />
                             <ContentPresenter
                                 Grid.Column="1"
-                                Grid.Row="7"
+                                Grid.Row="8"
                                 Content="{Binding ChangeThreadNoTxt}"
                                 ContentTemplate="{StaticResource Data1}"
                                 />
 
                             <Separator
                                 Grid.Column="0" Grid.ColumnSpan="2"
-                                Grid.Row="8"
+                                Grid.Row="9"
                                 Margin="16,8,16,8"
                                 Style="{StaticResource MaterialDesignDarkSeparator}" />
 
                             <TextBlock
                                 Grid.Column="0"
-                                Grid.Row="9"
+                                Grid.Row="10"
                                 Style="{StaticResource MaterialDesignBody1TextBlock}"
                                 VerticalAlignment="Top"
                                 Text="手書きローテ―ト時間"
@@ -432,7 +456,7 @@
                                 />
                             <TextBox
                                 Grid.Column="1"
-                                Grid.Row="9"
+                                Grid.Row="10"
                                 VerticalAlignment="Top"
                                 material:HintAssist.Hint="時間(秒)"
                                 Style="{StaticResource MaterialDesignOutlinedTextBox}"
@@ -440,7 +464,7 @@
                                 />
                             <TextBlock
                                 Grid.Column="0"
-                                Grid.Row="10"
+                                Grid.Row="11"
                                 Style="{StaticResource MaterialDesignBody1TextBlock}"
                                 VerticalAlignment="Top"
                                 Text="一定時間で手書きを消す"
@@ -448,7 +472,7 @@
                                 />
                             <ToggleButton
                                 Grid.Column="1"
-                                Grid.Row="10"
+                                Grid.Row="11"
                                 Style="{StaticResource MaterialDesignSwitchLightToggleButton}"
                                 HorizontalAlignment="Right"
                                 VerticalAlignment="Center"
@@ -778,7 +802,7 @@
                         Grid.Row="22"
                         Style="{StaticResource MaterialDesignOutlinedCard}"
                         Padding="8">
-                        <Grid Grid.Column="1" Grid.Row="3" HorizontalAlignment="Right">
+                        <Grid HorizontalAlignment="Right">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="152" />
                                 <ColumnDefinition Width="8" />
@@ -819,9 +843,60 @@
                             </Button>
                         </Grid>
                     </material:Card>
-                    
+
 
                     <StackPanel Grid.Row="24" Orientation="Horizontal">
+                        <Viewbox Width="28" Height="28" Stretch="Uniform">
+                            <material:PackIcon Kind="Cogs" />
+                        </Viewbox>
+                        <TextBlock
+                            Style="{StaticResource MaterialDesignHeadline6TextBlock}"
+                            Text="そのほか"
+                            TextWrapping="Wrap"
+                            />
+                    </StackPanel>
+                    <material:Card
+                        Grid.Row="26"
+                        Style="{StaticResource MaterialDesignOutlinedCard}"
+                        Padding="8">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="260" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition MinHeight="56" />
+                            </Grid.RowDefinitions>
+
+                            <TextBlock
+                                Grid.Column="0"
+                                Style="{StaticResource MaterialDesignBody1TextBlock}"
+                                VerticalAlignment="Center"
+                                Text="wavファイル再生デバイス"
+                                TextWrapping="Wrap"
+                                />
+                            <ComboBox
+                                Grid.Column="1"
+                                Style="{StaticResource MaterialDesignOutlinedComboBox}"
+                                material:HintAssist.Hint="再生サウンドデバイス"
+                                ItemsSource="{Binding SoundDevices}"
+                                SelectedItem="{Binding UsedSoundDevice.Value, Mode=TwoWay}">
+                                <ComboBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border>
+                                            <TextBlock
+                                                Style="{StaticResource MaterialDesignBody2TextBlock}"
+                                                Text="{Binding Name, Mode=OneWay}"
+                                                TextWrapping="Wrap"
+                                                />
+                                        </Border>
+                                    </DataTemplate>
+                                </ComboBox.ItemTemplate>
+                            </ComboBox>
+                        </Grid>
+                    </material:Card>
+
+                    <StackPanel Grid.Row="28" Orientation="Horizontal">
                         <Viewbox Width="26" Height="28" Stretch="Uniform">
                             <material:PackIcon Kind="Flask" />
                         </Viewbox>
@@ -832,7 +907,7 @@
                             />
                     </StackPanel>
                     <material:Card
-                        Grid.Row="28"
+                        Grid.Row="30"
                         Style="{StaticResource MaterialDesignOutlinedCard}"
                         Padding="8">
                         <Grid>

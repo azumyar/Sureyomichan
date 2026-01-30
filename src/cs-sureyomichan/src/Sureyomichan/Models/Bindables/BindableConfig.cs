@@ -2,6 +2,7 @@ using Livet.Messaging.IO;
 using Reactive.Bindings;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
@@ -61,8 +62,38 @@ class BindableConfig : System.ComponentModel.INotifyPropertyChanged {
 	public ReactiveCommandSlim<FolderSelectionMessage> DownloadFolderSelectCommand { get; } = new();
 	public ReactiveCommandSlim<FolderSelectionMessage> TegakiSaveFolderSelectCommand { get; } = new();
 
+	// 20260130
+	public ReactivePropertySlim<bool> IsEnabledConvertObs { get; } = new(initialValue: false);
+	public ReactivePropertySlim<bool> IsEnabledLogSave { get; } = new(initialValue: false);
+	public BindableYomiageConfig YomiageSoudane { get; } = new(
+		Config.DefaultConfig.YomiageSoudane.Method,
+		Config.DefaultConfig.YomiageSoudane.File,
+		Config.DefaultConfig.YomiageSoudane.Text);
+	public ReactivePropertySlim<bool> IsEnabledAutoDleteIdRes { get; } = new(initialValue: false);
+	public ReactivePropertySlim<BindableSoundDevice> UsedSoundDevice { get; } = new(initialValue: BindableSoundDevice.Empty);
+	public ReactiveCollection<BindableSoundDevice> SoundDevices { get; } = new();
+
+
+
 	public BindableConfig(Config? config) {
+		static IEnumerable<BindableSoundDevice> getSoundDevices() {
+			var r = new List<BindableSoundDevice>();
+			for(var i = 0; i < NAudio.Wave.WaveOut.DeviceCount; i++) {
+				var cap = NAudio.Wave.WaveOut.GetCapabilities(i);
+				r.Add(new() {
+					Name = cap.ProductName,
+					Guid = cap.ProductGuid.ToString(),
+				});
+			}
+			return r.AsReadOnly();
+		}
+		var devices = getSoundDevices();
+		this.SoundDevices.Add(BindableSoundDevice.Empty);
+		this.SoundDevices.AddRange(devices);
+
 		if(config is { }) {
+			var usedSoundDevice = devices.Where(x => x.Guid == config.UsedSoundDevice).FirstOrDefault() ?? BindableSoundDevice.Empty;
+
 			this.InitialSettingVisibility.Value = Visibility.Collapsed;
 
 			this.SaveSubFolderName.Value = config.SaveSubFolderName;
@@ -85,6 +116,13 @@ class BindableConfig : System.ComponentModel.INotifyPropertyChanged {
 			this.PathDwonload.Value = config.PathDwonload;
 			this.PathLegacyTegakiSave.Value = config.PathLegacyTegakiSave2;
 			this.OpenWebViewDevTool.Value = config.OpenWebViewDevTool;
+
+			// 20260130
+			this.IsEnabledConvertObs.Value = config.IsEnabledConvertObs;
+			this.IsEnabledLogSave.Value = config.IsEnabledLogSave;
+			this.YomiageSoudane.Update(config.YomiageSoudane);
+			this.IsEnabledAutoDleteIdRes.Value = config.IsEnabledAutoDleteIdRes;
+			this.UsedSoundDevice.Value = usedSoundDevice;
 		} else {
 			this.InitialSettingVisibility.Value = Visibility.Visible;
 		}
@@ -139,6 +177,13 @@ class BindableConfig : System.ComponentModel.INotifyPropertyChanged {
 			NijiuraChanPasswd = this.NijiuraChanPasswd.Value,
 			PathLegacyTegakiSave2 = this.PathLegacyTegakiSave.Value,
 			OpenWebViewDevTool = this.OpenWebViewDevTool.Value,
+
+			// 20260130
+			IsEnabledConvertObs = this.IsEnabledConvertObs.Value,
+			IsEnabledLogSave = this.IsEnabledLogSave.Value,
+			YomiageSoudane = this.YomiageSoudane.ToConfig(),
+			IsEnabledAutoDleteIdRes = this.IsEnabledAutoDleteIdRes.Value,
+			UsedSoundDevice = this.UsedSoundDevice.Value.Guid
 		};
 		try {
 			File.WriteAllText(SureyomiChanEnviroment.GetStaticString(SureyomiChanStaticItem.ConfigFile), config.ToString());
@@ -195,4 +240,16 @@ class BindableYomiageConfig : System.ComponentModel.INotifyPropertyChanged {
 		File = File.Value,
 		Text = Text.Value,
 	};
+}
+
+class BindableSoundDevice : System.ComponentModel.INotifyPropertyChanged {
+	public event PropertyChangedEventHandler? PropertyChanged;
+
+	public static BindableSoundDevice Empty { get; } = new() {
+		Name = "デフォルトのデバイス",
+		Guid = "",
+	};
+
+	public required string Name { get; init; }
+	public required string Guid { get; init; }
 }
