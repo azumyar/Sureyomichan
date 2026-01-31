@@ -76,8 +76,8 @@ class MainWindowViewModel : BindableBase {
 
 	private readonly IDialogService dialogService;
 
-	public MainWindowViewModel(IDialogService navigationService) {
-		this.dialogService = navigationService;
+	public MainWindowViewModel(IDialogService dialogService) {
+		this.dialogService = dialogService;
 		this.FutabaUrl = Utils.Singleton.Instance.FutabaUrl;
 		this.NijiuraChanUrl = Utils.Singleton.Instance.NijiuraChanUrl;
 		this.attachmentWriter = new(config: this.config, uiDispatcher: this.uiDispatcher);
@@ -134,24 +134,10 @@ class MainWindowViewModel : BindableBase {
 	private readonly ReactivePropertySlim<Core.SureyomiChanApiLooper?> api = new (initialValue: null);
 
 	private void LoadConfig() {
-		// 動けばいいやの実装
-		try {
-			var json = File.ReadAllText(SureyomiChanEnviroment.GetStaticString(SureyomiChanStaticItem.ConfigFile));
-			var cm = JsonSerializer.Deserialize<ConfigObject>(json);
-			if((cm?.Version ?? 0) < Config.CurrentVersion) {
-				// TODO: マイグレ
-				// 開発中なので破棄する
-			} else {
-				var config = JsonSerializer.Deserialize<Config>(json);
-				if(config is { }) {
-					this.config.Update(config);
-					this.initConfig = true;
-				} else {
-
-				}
-			}
+		if(new Helpers.ConfigLoader().Load() is { } config) {
+			this.config.Update(config);
+			this.initConfig = true;
 		}
-		catch(Exception ex) { }
 	}
 
 	private void OnLoaded(RoutedEventArgs e) {

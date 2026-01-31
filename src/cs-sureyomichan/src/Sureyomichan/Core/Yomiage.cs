@@ -39,7 +39,19 @@ class Yomiage(BouyomiChan bouyomi, IConfigProxy config) {
 	}
 
 	public void DoYomiage(Models.YomiageConfig c) {
-		static void file(Models.YomiageConfig c) {
+		void file() {
+			int index() {
+				var d = config.Get().UsedSoundDevice.ToLower();
+				if(!string.IsNullOrEmpty(d)) {
+					for(int i = 0; i < WaveOut.DeviceCount; i++) {
+						if(WaveOut.GetCapabilities(i).ProductGuid.ToString().ToLower() == d) {
+							return i;
+						}
+					}
+				}
+				return -1;
+			}
+
 			var file = Path.IsPathFullyQualified(c.File) switch {
 				true => c.File,
 				_ => Path.Combine(AppContext.BaseDirectory, "assets", "sound", c.File)
@@ -47,7 +59,9 @@ class Yomiage(BouyomiChan bouyomi, IConfigProxy config) {
 			Task.Run(() => {
 				var reader = new AudioFileReader(file);
 
-				WaveOut waveOut = new WaveOut();
+				WaveOut waveOut = new WaveOut() {
+					DeviceNumber = index(),
+				};
 				waveOut.Init(reader);
 				waveOut.Play();
 
@@ -59,7 +73,7 @@ class Yomiage(BouyomiChan bouyomi, IConfigProxy config) {
 		case Models.YomiageConfig.YomiageMethodOff:
 			break;
 		case Models.YomiageConfig.YomiageMethodFile:
-			file(c);
+			file();
 			break;
 		case Models.YomiageConfig.YomiageMethodText:
 			this.EnqueueSpeak(c.Text);

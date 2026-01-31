@@ -18,6 +18,7 @@ using System.Windows.Threading;
 
 namespace Haru.Kei.SureyomiChan.Core; 
 class AttachmentWriter {
+	private System.Reactive.Concurrency.EventLoopScheduler ConvertScheduler { get; } = new();
 	private readonly Helpers.SerialRunner downloadRunner;
 
 	private readonly string saveFileNamePng = "tegaki.png";
@@ -177,8 +178,15 @@ class AttachmentWriter {
 					if(Directory.Exists(saveRoot)) {
 						try {
 							await File.WriteAllBytesAsync(Path.Combine(saveRoot, attachment.FileName), orig);
+
+							// 変換処理
+							if(config.Get().IsEnabledConvertObs) {
+								this.ConvertForObs(saveRoot, attachment.FileName, orig);
+							}
 						}
-						catch(Exception ex) when(ex is System.IO.IOException) {
+						catch(Exception ex) when((ex is System.IO.IOException)
+							|| (ex is Exceptions.SureyomiChanException)) {
+
 							Utils.Logger.Instance.Error(ex);
 						}
 					} else {
@@ -236,12 +244,21 @@ class AttachmentWriter {
 					using var r = await Utils.Util.Http(() => Utils.Singleton.Instance.HttpClient.GetAsync(u));
 					using var rs = await r.Content.ReadAsStreamAsync();
 					using var ws = new FileStream(filePath, FileMode.OpenOrCreate);
+					using var ms = new MemoryStream();
 					var b = new byte[1024];
 					while((await rs.ReadAsync(b, 0, b.Length)) is int size && (0 < size)) {
-						await ws.WriteAsync(b, 0, size);
+						await Task.WhenAll(
+							ws.WriteAsync(b, 0, size),
+							ms.WriteAsync(b, 0, size)
+						);
 					}
 					await ws.FlushAsync();
 					Utils.Logger.Instance.Info($"ファイルをダウンロードしました => {u}");
+
+					// 変換処理
+					if(config.Get().IsEnabledConvertObs) {
+						this.ConvertForObs(saveRoot, fileName, ms.ToArray());
+					}
 					await Task.Delay(500);
 				}
 				catch(Exception ex) when(ex is System.IO.IOException) {
@@ -274,6 +291,36 @@ class AttachmentWriter {
 			catch(Exception) { }
 		}
 		return saveRoot;
+	}
+
+
+	private void ConvertForObs(string saveRoot, string fileName, byte[] fileBytes) {
+		Observable.Create<int>(o => {
+			try {
+				Utils.Logger.Instance.Info($"OBS用変換を開始します => {fileName}");
+				var task = Path.GetExtension(fileName).ToLower() switch {
+					".png" => Utils.ImageUtil.ConvertApng2Gif,
+					".webp" => Utils.ImageUtil.ConvertAwebp2Gif,
+					_ => default(Func<byte[], string, string, bool>?)
+				};
+				if(task is { }) {
+					task(
+						fileBytes,
+						saveRoot,
+						$"{Path.GetFileNameWithoutExtension(fileName)}.conv");
+				}
+			}
+			catch(Exception ex) {
+				Utils.Logger.Instance.Error(ex);
+			}
+			finally {
+				Utils.Logger.Instance.Info($"OBS用変換が終了しました => {fileName}");
+				o.OnCompleted();
+			}
+			return System.Reactive.Disposables.Disposable.Empty;
+		}).SubscribeOn(this.ConvertScheduler)
+			.Subscribe();
+
 	}
 
 	private async Task SaveHtml((Models.SureyomiChanModel Model, Models.AttachmentObject Attachment)? arg) {
