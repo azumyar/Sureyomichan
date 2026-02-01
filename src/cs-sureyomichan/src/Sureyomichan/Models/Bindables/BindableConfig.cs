@@ -77,16 +77,17 @@ class BindableConfig : System.ComponentModel.INotifyPropertyChanged {
 
 	public BindableConfig(Config? config) {
 		static IEnumerable<BindableSoundDevice> getSoundDevices() {
-			var r = new List<BindableSoundDevice>();
-			for(var i = 0; i < NAudio.Wave.WaveOut.DeviceCount; i++) {
-				var cap = NAudio.Wave.WaveOut.GetCapabilities(i);
-				r.Add(new() {
-					Name = cap.ProductName,
-					Guid = cap.ProductGuid.ToString(),
-				});
-			}
-			return r.AsReadOnly();
+			using var @enum = new NAudio.CoreAudioApi.MMDeviceEnumerator();
+			return @enum.EnumerateAudioEndPoints(
+					NAudio.CoreAudioApi.DataFlow.Render,
+					NAudio.CoreAudioApi.DeviceState.Active)
+					.Select(x => new BindableSoundDevice() {
+						Name = x.FriendlyName,
+						Guid = x.ID,
+					}).ToList()
+					.AsReadOnly();
 		}
+
 		var devices = getSoundDevices();
 		this.SoundDevices.Add(BindableSoundDevice.Empty);
 		this.SoundDevices.AddRange(devices);
