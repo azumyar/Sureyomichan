@@ -1,10 +1,12 @@
-using NAudio.Wave;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+
+using NAudio.CoreAudioApi;
+using NAudio.Wave;
 
 namespace Haru.Kei.SureyomiChan.Core;
 
@@ -40,16 +42,26 @@ class Yomiage(BouyomiChan bouyomi, IConfigProxy config) {
 
 	public void DoYomiage(Models.YomiageConfig c) {
 		void file() {
-			int index() {
-				var d = config.Get().UsedSoundDevice.ToLower();
-				if(!string.IsNullOrEmpty(d)) {
-					for(int i = 0; i < WaveOut.DeviceCount; i++) {
-						if(WaveOut.GetCapabilities(i).ProductGuid.ToString().ToLower() == d) {
-							return i;
-						}
+			MMDevice device() {
+				using var @enmu = new MMDeviceEnumerator();
+				MMDevice? device = null;
+				var id = config.Get().UsedSoundDevice;
+				if(!string.IsNullOrEmpty(id)) {
+					try {
+						device = @enmu.GetDevice(id);
+					}
+					catch(System.Runtime.InteropServices.COMException ex) {
+						Utils.Logger.Instance.Error("再生デバイスが見つかりません");
+						Utils.Logger.Instance.Error(ex);
 					}
 				}
-				return -1;
+
+				return device switch {
+					{ } => device,
+					_ => @enmu.GetDefaultAudioEndpoint(
+						DataFlow.Render,
+						Role.Console)
+				};
 			}
 
 			var file = Path.IsPathFullyQualified(c.File) switch {
@@ -59,9 +71,11 @@ class Yomiage(BouyomiChan bouyomi, IConfigProxy config) {
 			Task.Run(() => {
 				var reader = new AudioFileReader(file);
 
-				WaveOut waveOut = new WaveOut() {
-					DeviceNumber = index(),
-				};
+				var waveOut = new WasapiOut(
+					device: device(),
+					shareMode: AudioClientShareMode.Shared,
+					useEventSync: true,
+					latency: 200);
 				waveOut.Init(reader);
 				waveOut.Play();
 
