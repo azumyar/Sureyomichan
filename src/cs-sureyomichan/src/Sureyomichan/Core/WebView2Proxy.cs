@@ -99,12 +99,12 @@ function __runNgPlugins(json) {{
 		}
 	}
 
-	public async Task<Models.TegakiSavePluginResult?> RunPlugin(Models.SureyomiChanModel res) {
+	public async Task<Models.TegakiSavePluginResult?> RunPlugin(Models.SureyomiChanModel res, ulong? imageHash) {
 		var task = await Utils.Util.AwaitObserver(
 			Observable.Return(res)
 				.ObserveOn(Reactive.Bindings.UIDispatcherScheduler.Default)
 				.Select(async x => {
-					var r = await this.webView2.CoreWebView2.ExecuteScriptAsync($"__runNgPlugins('{x.ToTegakiSaveModel(isNg: false).ToString(writeIndented: false)}')");
+					var r = await this.webView2.CoreWebView2.ExecuteScriptAsync($"__runNgPlugins('{x.ToTegakiSaveModel(isNg: false, imageHash: imageHash).ToString(writeIndented: false)}')");
 					if(r == "null") {
 						return null;
 					}

@@ -56,7 +56,7 @@ static class ModelsExtensions {
 		/// <returns></returns>
 		public string FormatBody() => Comment2Text(source.Body);
 
-		public Models.TegakiSaveResData ToTegakiSaveModel(bool isNg) {
+		public Models.TegakiSaveResData ToTegakiSaveModel(bool isNg, ulong? imageHash) {
 			static string @string(string? s) => s ?? "";
 
 			var r = new Models.TegakiSaveResData() {
@@ -69,6 +69,10 @@ static class ModelsExtensions {
 				Now = source.FormatDateTime(),
 				Time = $"{Utils.Util.ToUnixTimeSeconds(source.PostTime)}",
 				TegakiNg = isNg,
+				ImageHash = imageHash switch {
+					{ } v => $"{v}",
+					_ => ""
+				},
 				SureyomiTerms = new(source.Token),
 
 				FileSource = @string(source.ImageSource),
