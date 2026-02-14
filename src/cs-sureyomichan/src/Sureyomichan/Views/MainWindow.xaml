@@ -243,7 +243,7 @@
 
                     <TextBlock
                         Grid.Row="2"
-                        Visibility="{Binding InitialSettingVisibility.Value, Mode=OneWay}"
+                        Visibility="{Binding DataContext.InitialSettingVisibility.Value, Mode=OneWay, ElementName=_this}"
                         Style="{StaticResource MaterialDesignBody1TextBlock}"
                         Text="初期設定を行ってください"
                         TextWrapping="Wrap"
