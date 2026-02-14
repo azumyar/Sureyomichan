@@ -15,9 +15,6 @@ namespace Haru.Kei.SureyomiChan.Models.Bindables;
 class BindableConfig : System.ComponentModel.INotifyPropertyChanged {
 	public event PropertyChangedEventHandler? PropertyChanged;
 
-	public ReactiveProperty<Visibility> InitialSettingVisibility { get; } = new(initialValue: Visibility.Collapsed);
-
-
 	public ReactivePropertySlim<string> SaveSubFolderName { get; } = new(initialValue: "$Board$Thread");
 	public ReactivePropertySlim<bool> IsSaveAttachmentFile { get; } = new(initialValue: false);
 	public ReactivePropertySlim<bool> IsSaveUpFile { get; } = new(initialValue: false);
@@ -75,7 +72,7 @@ class BindableConfig : System.ComponentModel.INotifyPropertyChanged {
 
 
 
-	public BindableConfig(Config? config) {
+	public BindableConfig(Config config) {
 		static IEnumerable<BindableSoundDevice> getSoundDevices() {
 			using var @enum = new NAudio.CoreAudioApi.MMDeviceEnumerator();
 			return @enum.EnumerateAudioEndPoints(
@@ -88,47 +85,43 @@ class BindableConfig : System.ComponentModel.INotifyPropertyChanged {
 					.AsReadOnly();
 		}
 
+		this.DownloadFolderSelectCommand.Subscribe(x => OnDownloadFolderSelected(x));
+		this.TegakiSaveFolderSelectCommand.Subscribe(x => OnTegakiSaveFolderSelected(x));
+
+
 		var devices = getSoundDevices();
 		this.SoundDevices.Add(BindableSoundDevice.Empty);
 		this.SoundDevices.AddRange(devices);
 
-		if(config is { }) {
-			var usedSoundDevice = devices.Where(x => x.Guid == config.UsedSoundDevice).FirstOrDefault() ?? BindableSoundDevice.Empty;
+		var usedSoundDevice = devices.Where(x => x.Guid == config.UsedSoundDevice).FirstOrDefault() ?? BindableSoundDevice.Empty;
 
-			this.InitialSettingVisibility.Value = Visibility.Collapsed;
+		this.SaveSubFolderName.Value = config.SaveSubFolderName;
+		this.IsSaveAttachmentFile.Value = config.IsEnabledAttacmentFile;
+		this.IsSaveUpFile.Value = config.IsEnabledUpFile;
+		this.SaveThreadNo.Value = config.SaveThreadNoEnabled;
+		this.ChangeThreadNoTxt.Update(config.ChangeThreadNoTxtEnabled, config.ChangeThreadNoTxtText);
+		this.TegakiRotateTime.Value = Math.Max(1, config.TegakiRotateTime / 1000).ToString();
+		this.TegakiRemove.Value = config.TegakiRemoveEnabled;
+		this.YomiageStarted.Update(config.YomiageStarted);
+		this.YomiageOld.Update(config.YomiageOld);
+		this.YomiageOldTime.Value = Math.Max(1, config.YomiageOldTime / 60 / 1000).ToString();
+		this.YomiageDie.Update(config.YomiageDie);
+		this.YomiageSaveTegaki.Update(config.YomiageSaveTegaki);
+		this.AppendSpecialTag.Value = config.AppendSpecialTag;
+		this.NonReadId.Value = config.NonReadId;
+		this.BouyomiChanPort.Value = config.BouyomiChanPort.ToString();
+		this.FutabaPasswd.Value = config.FutabaPasswd;
+		this.NijiuraChanPasswd.Value = config.NijiuraChanPasswd;
+		this.PathDwonload.Value = config.PathDwonload;
+		this.PathLegacyTegakiSave.Value = config.PathLegacyTegakiSave2;
+		this.OpenWebViewDevTool.Value = config.OpenWebViewDevTool;
 
-			this.SaveSubFolderName.Value = config.SaveSubFolderName;
-			this.IsSaveAttachmentFile.Value = config.IsEnabledAttacmentFile;
-			this.IsSaveUpFile.Value = config.IsEnabledUpFile;
-			this.SaveThreadNo.Value = config.SaveThreadNoEnabled;
-			this.ChangeThreadNoTxt.Update(config.ChangeThreadNoTxtEnabled, config.ChangeThreadNoTxtText);
-			this.TegakiRotateTime.Value = Math.Max(1, config.TegakiRotateTime / 1000).ToString();
-			this.TegakiRemove.Value = config.TegakiRemoveEnabled;
-			this.YomiageStarted.Update(config.YomiageStarted);
-			this.YomiageOld.Update(config.YomiageOld);
-			this.YomiageOldTime.Value = Math.Max(1, config.YomiageOldTime / 60 / 1000).ToString();
-			this.YomiageDie.Update(config.YomiageDie);
-			this.YomiageSaveTegaki.Update(config.YomiageSaveTegaki);
-			this.AppendSpecialTag.Value = config.AppendSpecialTag;
-			this.NonReadId.Value = config.NonReadId;
-			this.BouyomiChanPort.Value = config.BouyomiChanPort.ToString();
-			this.FutabaPasswd.Value = config.FutabaPasswd;
-			this.NijiuraChanPasswd.Value = config.NijiuraChanPasswd;
-			this.PathDwonload.Value = config.PathDwonload;
-			this.PathLegacyTegakiSave.Value = config.PathLegacyTegakiSave2;
-			this.OpenWebViewDevTool.Value = config.OpenWebViewDevTool;
-
-			// 20260130
-			this.IsEnabledConvertObs.Value = config.IsEnabledConvertObs;
-			this.IsEnabledLogSave.Value = config.IsEnabledLogSave;
-			this.YomiageSoudane.Update(config.YomiageSoudane);
-			this.IsEnabledAutoDleteIdRes.Value = config.IsEnabledAutoDleteIdRes;
-			this.UsedSoundDevice.Value = usedSoundDevice;
-		} else {
-			this.InitialSettingVisibility.Value = Visibility.Visible;
-		}
-		this.DownloadFolderSelectCommand.Subscribe(x => OnDownloadFolderSelected(x));
-		this.TegakiSaveFolderSelectCommand.Subscribe(x => OnTegakiSaveFolderSelected(x));
+		// 20260130
+		this.IsEnabledConvertObs.Value = config.IsEnabledConvertObs;
+		this.IsEnabledLogSave.Value = config.IsEnabledLogSave;
+		this.YomiageSoudane.Update(config.YomiageSoudane);
+		this.IsEnabledAutoDleteIdRes.Value = config.IsEnabledAutoDleteIdRes;
+		this.UsedSoundDevice.Value = usedSoundDevice;
 	}
 
 	private void OnDownloadFolderSelected(FolderSelectionMessage m) {

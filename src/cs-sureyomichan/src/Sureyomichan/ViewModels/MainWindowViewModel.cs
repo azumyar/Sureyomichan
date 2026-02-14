@@ -52,6 +52,7 @@ class MainWindowViewModel : BindableBase {
 	public ReadOnlyReactivePropertySlim<Visibility> StartPageVisibility { get; }
 	public ReadOnlyReactivePropertySlim<Visibility> MainPageVisibility { get; }
 	public ReadOnlyReactivePropertySlim<Visibility> ConfigPageVisibility { get; }
+	public ReadOnlyReactivePropertySlim<Visibility> InitialSettingVisibility { get; }
 
 	public ReactiveCollection<BindableItem> Yomiage { get; } = new();
 	public ReactivePropertySlim<string> Url { get; } = new(initialValue: "");
@@ -95,6 +96,10 @@ class MainWindowViewModel : BindableBase {
 			LayoutMode.Config => Visibility.Visible,
 			_ => Visibility.Collapsed,
 		}).ToReadOnlyReactivePropertySlim();
+		this.InitialSettingVisibility = this.initConfig.Select(x => x switch {
+			true => Visibility.Collapsed,
+			_ => Visibility.Visible,
+		}).ToReadOnlyReactivePropertySlim();
 
 
 		this.ClickYomiageStartCommand.Subscribe(_ => this.OnYomiage_Start());
@@ -115,7 +120,7 @@ class MainWindowViewModel : BindableBase {
 	}
 
 	private const string SchemeName = "sureyomichan";
-	private bool initConfig = false;
+	private readonly ReactivePropertySlim<bool> initConfig = new(initialValue: false);
 	private readonly Core.ConfigProxy config = new();
 	private readonly Core.UiMessageMultiDispatcher uiDispatcher = new();
 	private readonly Core.AttachmentWriter attachmentWriter;
@@ -136,7 +141,7 @@ class MainWindowViewModel : BindableBase {
 	private void LoadConfig() {
 		if(new Helpers.ConfigLoader().Load() is { } config) {
 			this.config.Update(config);
-			this.initConfig = true;
+			this.initConfig.Value = true;
 		}
 	}
 
@@ -155,7 +160,7 @@ class MainWindowViewModel : BindableBase {
 		}
 		Utils.Singleton.Instance.StartupSequence.End(hwnd);
 
-		if(!this.initConfig) {
+		if(!this.initConfig.Value) {
 			this.Layout.Value = LayoutMode.Config;
 		} else {
 			this.Layout.Value = LayoutMode.Start;
@@ -207,6 +212,7 @@ class MainWindowViewModel : BindableBase {
 	private void OnSaveConfig() { 
 		this.config.Update(this.BindableConfig.Value.Save());
 		this.Layout.Value = LayoutMode.Start;
+		this.initConfig.Value = true;
 	}
 
 	private async void OnAddUrlScheme() {
