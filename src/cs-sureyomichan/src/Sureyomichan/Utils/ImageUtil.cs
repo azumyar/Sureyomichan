@@ -30,6 +30,7 @@ internal class ImageUtil {
 	class ImageStoreImpl : Models.IImageStore {
 		private const string CacheFile = "image-cache.db";
 		private const string CacheTable = "image";
+		private static readonly object lockObj = new();
 		private string __DbFile => Path.Combine(AppContext.BaseDirectory, CacheFile);
 
 		public ImageStoreImpl() {
@@ -42,51 +43,57 @@ internal class ImageUtil {
 		}
 
 		public byte[]? Get(string board, int threadNo, string imageName) {
-			try {
-				using var db = new LiteDatabase(__DbFile);
-				var ic = db.GetCollection<CacheObject>(CacheTable)
-					.FindOne(x => (x.Board == board)
-						&& (x.ThreadNo == threadNo)
-						&& (x.FileName == imageName));
-				return ic?.ImageBytes;
-			}
-			catch(LiteDB.LiteException e) {
-				Logger.Instance.Error(e);
-				return null;
+			lock(lockObj) {
+				try {
+					using var db = new LiteDatabase(__DbFile);
+					var ic = db.GetCollection<CacheObject>(CacheTable)
+						.FindOne(x => (x.Board == board)
+							&& (x.ThreadNo == threadNo)
+							&& (x.FileName == imageName));
+					return ic?.ImageBytes;
+				}
+				catch(LiteDB.LiteException e) {
+					Logger.Instance.Error(e);
+					return null;
+				}
 			}
 		}
 
 		public void Insert(string board, int threadNo, string imageName, byte[] imageBytes) {
-			using var db = new LiteDatabase(__DbFile);
-			db.BeginTrans();
-			try {
-				db.GetCollection<CacheObject>(CacheTable)
-					.Insert(new CacheObject() {
-						Board = board,
-						ThreadNo = threadNo,
-						Time = DateTime.Now,
-						ImageBytes = imageBytes,
-						FileName = imageName
-					});
-				db.Commit();
-			}
-			catch(LiteDB.LiteException e) {
-				Logger.Instance.Error(e);
-				db.Rollback();
+			lock(lockObj) {
+				using var db = new LiteDatabase(__DbFile);
+				db.BeginTrans();
+				try {
+					db.GetCollection<CacheObject>(CacheTable)
+						.Insert(new CacheObject() {
+							Board = board,
+							ThreadNo = threadNo,
+							Time = DateTime.Now,
+							ImageBytes = imageBytes,
+							FileName = imageName
+						});
+					db.Commit();
+				}
+				catch(LiteDB.LiteException e) {
+					Logger.Instance.Error(e);
+					db.Rollback();
+				}
 			}
 		}
 
 		public void Remove(string board, int threadNo) {
-			using var db = new LiteDatabase(__DbFile);
-			db.BeginTrans();
-			try {
-				db.GetCollection<CacheObject>(CacheTable)
-					.DeleteMany(x => (x.Board == board) && (x.ThreadNo == threadNo));
-				db.Commit();
-			}
-			catch(LiteDB.LiteException e) {
-				Logger.Instance.Error(e);
-				db.Rollback();
+			lock(lockObj) {
+				using var db = new LiteDatabase(__DbFile);
+				db.BeginTrans();
+				try {
+					db.GetCollection<CacheObject>(CacheTable)
+						.DeleteMany(x => (x.Board == board) && (x.ThreadNo == threadNo));
+					db.Commit();
+				}
+				catch(LiteDB.LiteException e) {
+					Logger.Instance.Error(e);
+					db.Rollback();
+				}
 			}
 		}
 	}
