@@ -16,6 +16,12 @@ namespace Haru.Kei.SureyomiChan;
 public partial class App : PrismApplication {
 
 	protected override void OnStartup(StartupEventArgs e) {
+		AppDomain.CurrentDomain.UnhandledException += (_, e) => {
+			Utils.Logger.Instance.WriteFromUnhandledException(
+				"！！！予期せぬエラーが発生しました！！！",
+				e.ExceptionObject as Exception);
+		};
+
 		System.Text.Encoding.RegisterProvider(System.Text.CodePagesEncodingProvider.Instance);
 		Reactive.Bindings.UIDispatcherScheduler.Initialize();
 
