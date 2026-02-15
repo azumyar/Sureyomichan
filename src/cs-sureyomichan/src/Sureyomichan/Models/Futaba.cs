@@ -12,30 +12,30 @@ namespace Haru.Kei.SureyomiChan.Models;
 class FutabaResponse : JsonObject {
 	[JsonPropertyName("die")]
 	[JsonInclude]
-	public string die { get; private set; } = "";
+	public string Die { get; private set; } = "";
 	[JsonPropertyName("dielong")]
 	[JsonInclude]
-	public string dielong { get; private set; } = "";
+	public string DieLong { get; private set; } = "";
 
 	[JsonPropertyName("dispname")]
 	[JsonInclude]
-	public int dispname { get; private set; }
+	public int DispName { get; private set; }
 
 	[JsonPropertyName("dispsod")]
 	[JsonInclude]
-	public int dispsod { get; private set; }
+	public int Dispsod { get; private set; }
 
 	[JsonPropertyName("maxres")]
 	[JsonInclude]
-	public string maxres { get; private set; } = "";
+	public string MaxRes { get; private set; } = "";
 
 	[JsonPropertyName("nowtime")]
 	[JsonInclude]
-	public long nowtime { get; private set; }
+	public long NowTime { get; private set; }
 
 	[JsonPropertyName("old")]
 	[JsonInclude]
-	public long old { get; private set; }
+	public long Old { get; private set; }
 
 	[JsonPropertyName("res")]
 	[JsonInclude]

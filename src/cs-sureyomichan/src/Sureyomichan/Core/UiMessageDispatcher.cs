@@ -11,6 +11,7 @@ class UiMessageDispatcher {
 	public required Action? OnBeginApi { get; set; }
 	public required Action<bool>? OnEndApi { get; set; }
 	public required Action<DateTime, DateTime>? OnUpdateDieTime { get; set; }
+	public required Action? OnMaxRes { get; set; }
 	public required Action? OnThreadDied { get; set; }
 	public required Action<IEnumerable<Models.Bindables.BindableSureyomiChanModel>>? OnNewReplies { get; set; }
 	public required Action? OnBouyomiChanNotFound { get; set; }
@@ -27,6 +28,9 @@ class UiMessageDispatcher {
 			if(sucessed && response is { }) {
 				if(response.SupportFeature.IsSupportThreadOld && response.IsAlive) {
 					this.OnUpdateDieTime?.Invoke(response.CurrentTime, response.DieTime);
+				}
+				if(response.SupportFeature.IsSupportThreadOld && response.IsAlive && response.IsMaxRes) {
+					this.OnMaxRes?.Invoke();
 				}
 				if(response.SupportFeature.IsSupportThreadDie && !response.IsAlive) {
 					this.OnThreadDied?.Invoke();

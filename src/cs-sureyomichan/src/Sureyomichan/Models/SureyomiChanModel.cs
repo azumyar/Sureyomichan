@@ -14,6 +14,7 @@ class SureyomiChanResponse {
 	public required int ThreadNo { get; init; }
 	public required string ThreadNoTxt { get; init; }
 	public required bool IsAlive { get; init; }
+	public required bool IsMaxRes { get; init; }
 	public required DateTime CurrentTime { get; init; }
 	public required DateTime DieTime { get; init; }
 	public required IEnumerable<SureyomiChanModel> NewReplies { get; init; }
