@@ -114,6 +114,10 @@ internal class YomiageDialogViewModel : BindableBase, IDialogAware {
 					_ => $"スレ消滅：{tt.ToString("HH:mm")}(あと{ts.ToString(@"ss\秒")})",
 				};
 			},
+			OnMaxRes = () => {
+				this.ThreadDieText.Value = "最大レス数に到達しました";
+				StopYomiage();
+			},
 			OnThreadDied = () => {
 				this.ThreadDieText.Value = "スレッドが落ちました";
 				StopYomiage();
@@ -292,6 +296,9 @@ internal class YomiageDialogViewModel : BindableBase, IDialogAware {
 					await this.param.AttachmentWriter.UpdateThreadNo(x);
 					if(x.SupportFeature.IsSupportThreadOld && isOld()) {
 						yomiage.SpeakOld();
+					}
+					if(x.IsMaxRes) {
+						yomiage.SpeakMaxRes();
 					}
 					if(x.SupportFeature.IsSupportThreadDie && !x.IsAlive) {
 						yomiage.SpeakDead();

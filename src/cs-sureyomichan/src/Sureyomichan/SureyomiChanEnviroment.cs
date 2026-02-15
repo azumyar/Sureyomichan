@@ -6,6 +6,10 @@ using System.Text;
 namespace Haru.Kei.SureyomiChan; 
 
 internal static class SureyomiChanEnviroment {
+	/// <summary>aimgはMaxRes判定がレスポンスにないようなので定数定義する</summary>
+	public static int NijiuraChanMaxRes => 1000;
+	public static string YomiageMaxResText => "最大レス数を超過しました。読み上げを停止します。";
+
 	public static string Scheme => "sureyomichan";
 
 	public static string CommandOpen => "open";
