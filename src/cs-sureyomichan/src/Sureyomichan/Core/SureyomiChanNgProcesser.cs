@@ -7,21 +7,30 @@ namespace Haru.Kei.SureyomiChan.Core;
 
 class SureyomiChanNgProcesser(WebView2Proxy webView2, ConfigProxy config) {
 
-	public async Task<bool> IsNgFromBody(Models.SureyomiChanModel m, Models.DifferenceHash? dhash) {
+	public async Task<(bool, string)> IsNgFromBody(Models.SureyomiChanModel m, Models.DifferenceHash? dhash) {
 		var con = config.Get();
 		if(m.HasId && con.NonReadId) {
-			return await Task.FromResult(true);
+			return await Task.FromResult(ToResult(true));
 		}
 
 		if(m.DeleteType != Models.SureyomiChanDeleteType.None) {
-			return await Task.FromResult(true);
+			return await Task.FromResult(ToResult(true));
 		}
 
+		System.Console.WriteLine(m.Body);
 		var ret = await webView2.RunPlugin(m, dhash?.Value);
-		return ret?.IsStop ?? false;
+		System.Console.WriteLine(ret);
+		return ToResult(ret);
 	}
 
-	public async Task<bool> IsNgFromImage(Models.DifferenceHash dhash) {
-		return await Task.FromResult(false);
+	public async Task<(bool, string)> IsNgFromImage(Models.DifferenceHash dhash) {
+		return await Task.FromResult(ToResult(false));
 	}
+
+	private static (bool, string) ToResult(bool b) => (b, "");
+	private static (bool, string) ToResult(Models.TegakiSavePluginResult? r) => r switch {
+		{ } v => (v.IsStop, v.ResultValue),
+		_ => ToResult(false),
+	};
+		
 }
