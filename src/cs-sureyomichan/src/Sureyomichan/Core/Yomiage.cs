@@ -14,6 +14,7 @@ class Yomiage(BouyomiChan bouyomi, IConfigProxy config) {
 	private bool stateStart = false;
 	private bool stateOld = false;
 	private bool stateDie = false;
+	private bool stateMaxRes = false;
 
 	public void SpeakStarted() {
 		if (!stateStart) {
@@ -34,6 +35,13 @@ class Yomiage(BouyomiChan bouyomi, IConfigProxy config) {
 			this.DoYomiage(config.Get().YomiageDie);
 		}
 		stateDie = true;
+	}
+
+	public void SpeakMaxRes() {
+		if(!stateMaxRes) {
+			this.EnqueueSpeak(SureyomiChanEnviroment.YomiageMaxResText);
+		}
+		stateMaxRes = true;
 	}
 
 	public void SaveImage() {

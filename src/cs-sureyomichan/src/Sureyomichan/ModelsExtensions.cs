@@ -139,9 +139,9 @@ static class ModelsExtensions {
 	}
 
 	extension(Models.FutabaResponse source) {
-		public DateTime NowDateTime => Utils.Util.FromUnixTimeSeconds(source.nowtime);
+		public DateTime NowDateTime => Utils.Util.FromUnixTimeSeconds(source.NowTime);
 		public DateTime DieDateTime => DateTime.TryParse(
-			source.dielong,
+			source.DieLong,
 			System.Globalization.CultureInfo.InvariantCulture,
 			System.Globalization.DateTimeStyles.None, out var d) switch {
 				true => d,

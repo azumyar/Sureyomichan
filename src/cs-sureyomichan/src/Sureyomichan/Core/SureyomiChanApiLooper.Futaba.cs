@@ -27,6 +27,7 @@ partial class SureyomiChanApiLooper {
 					ThreadNo = threadNo,
 					ThreadNoTxt = threadNoTxt,
 					IsAlive = x.NowDateTime < x.DieDateTime,
+					IsMaxRes = !string.IsNullOrEmpty(x.MaxRes),
 					CurrentTime = x.NowDateTime,
 					DieTime = x.DieDateTime,
 					NewReplies = x.Res.Select(x => x.ToSureyomiChanModel(this.threadNo, new FutabaInteraction(this.urlString, x, this.api, this.config))).ToArray(),
