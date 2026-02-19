@@ -24,6 +24,11 @@ class BouyomiChan {
 
 	public void EnqueueSpeak(params string[] text) {
 		foreach(var it in text) {
+			// 空文字列は読み上げない
+			if(string.IsNullOrWhiteSpace(it)) {
+				continue;
+			}
+
 			bouyomiRunner.Dispatch(async () => {
 				try {
 					return await this.SpeakAsync(it);

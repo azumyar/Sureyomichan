@@ -199,10 +199,14 @@ internal class YomiageDialogViewModel : BindableBase, IDialogAware {
 
 
 	private bool StartYomiage(bool isLatest) {
-		Task<bool> safeIsNgFromBody(Models.SureyomiChanModel it, Models.DifferenceHash? dhash) => this.param.Ng?.IsNgFromBody(it, dhash)!;
-		Task<bool> safeIsNgFromImage(Models.DifferenceHash? dhash) => dhash switch {
+		Task<Models.NgResult> safeIsNgFromBody(Models.SureyomiChanModel it, Models.DifferenceHash? dhash)
+			=> this.param.Ng?.IsNgFromBody(it, dhash) switch {
+				{ } v => v,
+				_ => Task.FromResult(Models.NgResult.Default),
+			};
+		Task<Models.NgResult> safeIsNgFromImage(Models.DifferenceHash? dhash) => dhash switch {
 			{ } v => this.param.Ng?.IsNgFromImage(v)!,
-			_ => Task.FromResult(false),
+			_ => Task.FromResult(Models.NgResult.Default),
 		};
 		if(this.param == null) {
 			Utils.Logger.Instance.Error($"！！整合性エラー読み上げパラメータが初期化されていません！！");
@@ -228,7 +232,7 @@ internal class YomiageDialogViewModel : BindableBase, IDialogAware {
 
 			api.Value.Run(
 				callBack: async (x, skip) => {
-					void yomiSpeak(Models.SureyomiChanModel m) {
+					void yomiSpeak(string m) {
 						if(!skip) {
 							yomiage.EnqueueSpeak(m);
 						}
@@ -239,9 +243,9 @@ internal class YomiageDialogViewModel : BindableBase, IDialogAware {
 						}
 					}
 					bool isOld() => (x.DieTime - x.CurrentTime).TotalMilliseconds < this.param.Config.Get().YomiageOldTime;
-					Task<bool> delay(int milisec) => Task.Run(async () => {
+					Task<Models.NgResult> delay(int milisec) => Task.Run(async () => {
 						await Task.Delay(milisec);
-						return false;
+						return Models.NgResult.Default;
 					});
 
 					var speak = new List<Models.SureyomiChanModel>();
@@ -265,15 +269,29 @@ internal class YomiageDialogViewModel : BindableBase, IDialogAware {
 						}
 
 						var isNg = false;
+						var body = it.ToSpeakText();
 						foreach(var it2 in await Task.WhenAll(
 							safeIsNgFromBody(it, dHash),
 							safeIsNgFromImage(dHash),
 							delay(500))) {
-							isNg |= it2;
+							isNg |= it2.IsNg;
+							if(0 < it2.ReplaceBody.Length) {
+								body = it2.ReplaceBody;
+							}
 						}
 
 						if(!isNg) {
-							yomiSpeak(it);
+							yomiSpeak(
+								string.Join('\n',
+									body.Replace("\r", "")
+										.Split("\n")
+										.Select(x => x switch {
+											{ } v when v.FirstOrDefault() == '>' => $"{this.param.Config.Get().AppendSpecialTag}{x.Substring(1)}",
+											{ } v => v,
+											_ => "",
+										}))
+								);
+							
 							if(attachment?.Attachment is { } att) {
 								yomiImage(att);
 								await this.param.AttachmentWriter.Save(it, att);

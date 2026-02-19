@@ -104,7 +104,12 @@ function __runNgPlugins(json) {{
 			Observable.Return(res)
 				.ObserveOn(Reactive.Bindings.UIDispatcherScheduler.Default)
 				.Select(async x => {
-					var r = await this.webView2.CoreWebView2.ExecuteScriptAsync($"__runNgPlugins('{x.ToTegakiSaveModel(isNg: false, imageHash: imageHash).ToString(writeIndented: false)}')");
+					var json = x.ToTegakiSaveModel(
+						isNg: false,
+						imageHash: imageHash,
+						replaceComment: x.Body.Replace('\"', '\''))
+						.ToString(writeIndented: false);
+					var r = await this.webView2.CoreWebView2.ExecuteScriptAsync($"__runNgPlugins('{json}')");
 					if(r == "null") {
 						return null;
 					}
