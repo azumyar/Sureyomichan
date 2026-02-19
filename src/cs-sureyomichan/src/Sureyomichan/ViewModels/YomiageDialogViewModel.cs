@@ -195,14 +195,14 @@ internal class YomiageDialogViewModel : BindableBase, IDialogAware {
 
 
 	private bool StartYomiage(bool isLatest) {
-		Task<(bool, string)> safeIsNgFromBody(Models.SureyomiChanModel it, Models.DifferenceHash? dhash)
+		Task<Models.NgResult> safeIsNgFromBody(Models.SureyomiChanModel it, Models.DifferenceHash? dhash)
 			=> this.param.Ng?.IsNgFromBody(it, dhash) switch {
 				{ } v => v,
-				_ => Task.FromResult((false, "")),
+				_ => Task.FromResult(Models.NgResult.Default),
 			};
-		Task<(bool, string)> safeIsNgFromImage(Models.DifferenceHash? dhash) => dhash switch {
+		Task<Models.NgResult> safeIsNgFromImage(Models.DifferenceHash? dhash) => dhash switch {
 			{ } v => this.param.Ng?.IsNgFromImage(v)!,
-			_ => Task.FromResult((false, "")),
+			_ => Task.FromResult(Models.NgResult.Default),
 		};
 		if(this.param == null) {
 			Utils.Logger.Instance.Error($"！！整合性エラー読み上げパラメータが初期化されていません！！");
@@ -239,9 +239,9 @@ internal class YomiageDialogViewModel : BindableBase, IDialogAware {
 						}
 					}
 					bool isOld() => (x.DieTime - x.CurrentTime).TotalMilliseconds < this.param.Config.Get().YomiageOldTime;
-					Task<(bool, string)> delay(int milisec) => Task.Run(async () => {
+					Task<Models.NgResult> delay(int milisec) => Task.Run(async () => {
 						await Task.Delay(milisec);
-						return (false, "");
+						return Models.NgResult.Default;
 					});
 
 					var speak = new List<Models.SureyomiChanModel>();
@@ -266,13 +266,13 @@ internal class YomiageDialogViewModel : BindableBase, IDialogAware {
 
 						var isNg = false;
 						var body = it.ToSpeakText();
-						foreach((bool IsStop, string Body) it2 in await Task.WhenAll(
+						foreach(var it2 in await Task.WhenAll(
 							safeIsNgFromBody(it, dHash),
 							safeIsNgFromImage(dHash),
 							delay(500))) {
-							isNg |= it2.IsStop;
-							if(0 < it2.Body.Length) {
-								body = it2.Body;
+							isNg |= it2.IsNg;
+							if(0 < it2.ReplaceBody.Length) {
+								body = it2.ReplaceBody;
 							}
 						}
 
