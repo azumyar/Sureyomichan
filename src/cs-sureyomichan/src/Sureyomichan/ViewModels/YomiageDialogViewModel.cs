@@ -81,6 +81,7 @@ internal class YomiageDialogViewModel : BindableBase, IDialogAware {
 
 	public ReactiveCommandSlim<RoutedEventArgs> LoadedCommand { get; } = new();
 	public ReactiveCommandSlim ClickYomiageCommand { get; } = new();
+	public ReactiveCommandSlim ClickOpenFolderCommand { get; } = new();
 	public ReactiveCommandSlim<RoutedEventArgs> SendDelCommand { get; } = new();
 	public ReactiveCommandSlim<RoutedEventArgs> DeleteResCommand { get; } = new();
 
@@ -171,6 +172,7 @@ internal class YomiageDialogViewModel : BindableBase, IDialogAware {
 		this.SendDelCommand.Subscribe(x => this.OnDendDel(x));
 		this.DeleteResCommand.Subscribe(x => this.OnDeleteRes(x));
 		this.ClickYomiageCommand.Subscribe(_ => this.OnYomiage());
+		this.ClickOpenFolderCommand.Subscribe(_ => this.OnOpenFolder());
 	}
 
 	public bool CanCloseDialog() {
@@ -401,6 +403,21 @@ internal class YomiageDialogViewModel : BindableBase, IDialogAware {
 			this.StartYomiage(false);
 		} else {
 			this.StopYomiage();
+		}
+	}
+
+	private void OnOpenFolder() {
+		if(this.param is { } && Utils.Util.GetSaveDirectoryPath(
+			this.param.Config.Get(),
+			this.param.Url.BoardId,
+			this.param.ThreadNo) is { } d
+			&& System.IO.Directory.Exists(d)) {
+		
+			System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(d) {
+				UseShellExecute = true
+			});
+		} else {
+			this.EnqueueErrorMessage("まだ何も保存されていません");
 		}
 	}
 }

@@ -33,7 +33,8 @@
                     VirtualizingPanel.ScrollUnit="Pixel"
                     VirtualizingPanel.IsVirtualizing="True"
                     VirtualizingPanel.VirtualizationMode="Recycling"
-                    material:ListBoxItemAssist.ShowSelection="False">
+                    material:ListBoxItemAssist.ShowSelection="False"
+                    Cursor="Arrow">
                     <ListBox.Style>
                         <Style TargetType="ListBox">
                             <Setter Property="Template">
@@ -420,6 +421,7 @@
                                 <Grid.RowDefinitions>
                                     <RowDefinition Height="Auto" />
                                     <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
                                 </Grid.RowDefinitions>
 
                                 <material:Chip
@@ -430,7 +432,7 @@
                                     VerticalAlignment="Center">
                                     <Grid>
                                         <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="120" />
+                                            <ColumnDefinition Width="128" />
                                             <ColumnDefinition Width="Auto" />
                                         </Grid.ColumnDefinitions>
                                         <TextBlock
@@ -462,7 +464,7 @@
                                     VerticalAlignment="Center">
                                     <Grid>
                                         <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="120" />
+                                            <ColumnDefinition Width="128" />
                                             <ColumnDefinition Width="Auto" />
                                         </Grid.ColumnDefinitions>
                                         <TextBlock
@@ -477,6 +479,46 @@
                                             VerticalAlignment="Center"
                                             IsChecked="{Binding ListBoxAutoScroll.Value, Mode=TwoWay}"
                                             />
+                                    </Grid>
+                                </material:Chip>
+
+                                <material:Chip
+                                    Grid.Column="0"
+                                    Grid.Row="2"
+                                    Foreground="Black"
+                                    Background="#eeeeee"
+                                    VerticalAlignment="Center">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="128" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock
+                                            Grid.Column="0"
+                                            Style="{StaticResource MaterialDesignBody1TextBlock}"
+                                            Text="保存フォルダを開く"
+                                            />
+
+                                        <Button
+                                            Grid.Column="1"
+                                            Style="{StaticResource MaterialDesignFlatSecondaryButton}"
+                                            Margin="0,2,0,2"
+                                            Width="32"
+                                            Height="32"
+                                            Padding="6"
+                                            VerticalAlignment="Center">
+                                            <Button.Content>
+                                                <Viewbox Stretch="Uniform" >
+                                                    <material:PackIcon Kind="FolderOutline" />
+                                                </Viewbox>
+                                            </Button.Content>
+
+                                            <i:Interaction.Triggers>
+                                                <i:EventTrigger EventName="Click">
+                                                    <ri:EventToReactiveCommand Command="{Binding ClickOpenFolderCommand, Mode=OneWay}" />
+                                                </i:EventTrigger>
+                                            </i:Interaction.Triggers>
+                                        </Button>
                                     </Grid>
                                 </material:Chip>
                             </Grid>
