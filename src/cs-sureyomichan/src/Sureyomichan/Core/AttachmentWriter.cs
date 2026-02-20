@@ -1,4 +1,3 @@
-using ControlzEx.Standard;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -134,7 +133,18 @@ class AttachmentWriter {
 					}
 					static Task saveWebP(string path, byte[] or, byte[] im) {
 						return Task.Run(() => {
+							using var imageStream = new MemoryStream(im);
+							var d = BitmapDecoder.Create(
+								imageStream,
+								BitmapCreateOptions.None,
+								BitmapCacheOption.OnLoad);
 
+							using var fs = new FileStream(
+								path,
+								FileMode.OpenOrCreate);
+							BitmapEncoder enc = new PngBitmapEncoder();
+							enc.Frames.Add(BitmapFrame.Create(d.Frames.First()));
+							enc.Save(fs);
 						});
 					}
 					static Task saveMovie(string path, byte[] or, byte[] im) {
