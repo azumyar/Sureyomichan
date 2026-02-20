@@ -44,7 +44,7 @@ class NijiuraChanInteraction(string url, Models.NijiuraChanReplyV1 source, Helpe
 		=> await Task.FromResult(false);
 
 	public async Task<Models.AttachmentObject> DownloadImage()
-		=> await NijiuraChanUtil.DownloadImage(source.Image, source.Thumb);
+		=> await NijiuraChanUtil.DownloadImage(source.Image, source.Thumb, null);
 }
 
 class NijiuraChanInternalInteraction(string url, Models.NijiuraChanPostInternal source, Helpers.NijiuraChanApi? api, IConfigProxy config) : Models.ISureyomiChanInteraction {
@@ -59,12 +59,12 @@ class NijiuraChanInternalInteraction(string url, Models.NijiuraChanPostInternal 
 		=> await Task.FromResult(false);
 
 	public async Task<Models.AttachmentObject> DownloadImage()
-		=> await NijiuraChanUtil.DownloadImage(source.Attachment?.Path, source.Attachment?.Thumbnail);
+		=> await NijiuraChanUtil.DownloadImage(source.Attachment?.Path, source.Attachment?.Thumbnail, source.Attachment?.IsOekaki);
 }
 
 
 file static class NijiuraChanUtil {
-	public static async Task<Models.AttachmentObject> DownloadImage(string? imagePath, string? thumbnailPath) {
+	public static async Task<Models.AttachmentObject> DownloadImage(string? imagePath, string? thumbnailPath, bool? isOekaki) {
 		var fileName = imagePath ?? "";
 		var imageName = imagePath ?? "";
 		var orig = default(byte[]);
@@ -90,7 +90,7 @@ file static class NijiuraChanUtil {
 		}
 
 		return await Task.FromResult(new Models.AttachmentObject() {
-			IsUpdatedTegakiPng = Path.GetExtension(fileName).ToLower() == ".png",
+			IsUpdatedTegakiPng = isOekaki ?? Path.GetExtension(fileName).ToLower() == ".png",
 			FileName = Path.GetFileName(fileName),
 			ImageName = Path.GetFileName(imageName),
 			OriginalFileBytes = orig,

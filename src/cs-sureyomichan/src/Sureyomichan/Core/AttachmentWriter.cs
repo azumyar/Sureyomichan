@@ -276,15 +276,14 @@ class AttachmentWriter {
 		}
 	}
 	private string GetSaveDirectoryWithCreate(Models.SureyomiChanModel model) {
-		string saveRoot = this.config.Get().PathDwonloadValue;
-		var fd = this.GetSaveDirectoryName(model);
-		if(!string.IsNullOrWhiteSpace(fd)) {
-			saveRoot = Path.Combine(saveRoot, fd);
-		}
+		var saveRoot = Utils.Util.GetSaveDirectoryPath(
+			this.config.Get(),
+			model.Interaction.BoardId,
+			model.ThreadNo);
 
 		// 存在しない場合フォルダを作る
 		if(!Directory.Exists(saveRoot)) {
-			Utils.Logger.Instance.Info($"保存フォルダを作成します => {fd}");
+			Utils.Logger.Instance.Info($"保存フォルダを作成します => {Path.GetDirectoryName(saveRoot)}");
 			try {
 				Directory.CreateDirectory(saveRoot);
 			}
@@ -326,6 +325,7 @@ class AttachmentWriter {
 	private async Task SaveHtml((Models.SureyomiChanModel Model, Models.AttachmentObject Attachment)? arg) {
 		// OBS用のtegaki.htmlを出力
 		// 検討中
+		/*
 		string? src() {
 			if(arg is { } a) {
 				var dir = this.GetSaveDirectoryName(a.Model);
@@ -345,15 +345,9 @@ class AttachmentWriter {
 		await File.WriteAllBytesAsync(
 			tegakiHtmlPath,
 			Encoding.UTF8.GetBytes(this.ToHtml(src())));
+		*/
+		await Task.Yield();
 	}
-
-	private string GetSaveDirectoryName(Models.SureyomiChanModel model) {
-		var sb = new StringBuilder(this.config.Get().SaveSubFolderName);
-		sb.Replace("$Board", $"{SureyomiChanEnviroment.GetStaticString(model.Interaction.BoardId)}");
-		sb.Replace("$Thread", $"{model.ThreadNo}");
-		return sb.ToString();
-	}
-
 
 	private string ToHtml(string? src) {
 		static string nopHtml() => $@"<!doctype html>
