@@ -18,6 +18,7 @@ using System.Windows.Threading;
 namespace Haru.Kei.SureyomiChan.Core; 
 class AttachmentWriter {
 	private System.Reactive.Concurrency.EventLoopScheduler ConvertScheduler { get; } = new();
+	private readonly object lockObj = new();
 	private readonly Helpers.SerialRunner downloadRunner;
 
 	private readonly string saveFileNamePng = "tegaki.png";
@@ -67,15 +68,18 @@ class AttachmentWriter {
 
 		};
 	}
+
 	public async Task UpdateThreadNo(Models.SureyomiChanResponse response) {
-		if(this.currentThreadId.ContainsKey(response.ThreadNoTxt)) {
-			if(this.currentThreadId[response.ThreadNoTxt] == response.ThreadNo) {
-				return;
+		lock(this.lockObj) {
+			if(this.currentThreadId.ContainsKey(response.ThreadNoTxt)) {
+				if(this.currentThreadId[response.ThreadNoTxt] == response.ThreadNo) {
+					return;
+				} else {
+					this.currentThreadId[response.ThreadNoTxt] = response.ThreadNo;
+				}
 			} else {
-				this.currentThreadId[response.ThreadNoTxt] = response.ThreadNo;
+				this.currentThreadId.Add(response.ThreadNoTxt, response.ThreadNo);
 			}
-		} else {
-			this.currentThreadId.Add(response.ThreadNoTxt, response.ThreadNo);
 		}
 
 		if(this.config.Get().SaveThreadNoEnabled) {
