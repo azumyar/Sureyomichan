@@ -32,6 +32,10 @@ export default defineConfig({
           text: "使い方",
           items: [
             { text: "はじめに", link: "/usage/" },
+            { text: "インストール・アンインストール手順", link: "/usage/install" },
+            { text: "設定画面説明", link: "/usage/settings" }, 
+            { text: "使い方", link: "/usage/usage" }, 
+            { text: "よくある質問", link: "/usage/faq" },
           ],
         }
       ]
