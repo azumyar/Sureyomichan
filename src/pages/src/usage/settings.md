@@ -10,7 +10,7 @@ next: false
 ## 画像保存
 画像保存の各項目について説明します。  
 
-![-](../public/images/usage/010_setting_imageSet.png)
+![-](../public/images/usage/setting_010_imageSet.png)
 
 ### 保存フォルダ
 スレッドの添付ファイルを保存する先を指定します。  
@@ -46,7 +46,7 @@ next: false
 ## 読み上げ
 読み上げに関する各項目について説明します。  
 
-![-](../public/images/usage/020_setting_readingSet.png)
+![-](../public/images/usage/setting_020_readingSet.png)
 
 ### 読み上げ開始
 スレッドの読み上げ開始時の動作を指定します。  
@@ -77,7 +77,7 @@ next: false
 ## ふたば
 ふたば(img)でのみ使用する項目。  
 
-![-](../public/images/usage/030_setting_imgSet.png)
+![-](../public/images/usage/setting_030_imgSet.png)
 
 ### 削除パスワード
 読み上げたあとに対象のレスを削除する時に使います。   
@@ -86,7 +86,7 @@ next: false
 ## aimg
 あいもげでのみ使用する項目。  
 
-![-](../public/images/usage/040_setting_aimgSet.png)
+![-](../public/images/usage/setting_040_aimgSet.png)
 
 ### 削除パスワード
 読み上げたあとに対象のレスを削除する時に使います。   
@@ -97,7 +97,7 @@ next: false
 ## Chrome拡張連携
 Chrome拡張と連携する設定。  
 
-![-](../public/images/usage/050_setting_chromeSet.png)
+![-](../public/images/usage/setting_050_chromeSet.png)
 
 ### URLスキーマ登録
 スレ詠みちゃんChrome拡張と連携するためのURLスキーマをシステムに登録します。
@@ -110,7 +110,7 @@ Chrome拡張と連携する設定。
 ## そのほか
 その他の設定項目。
 
-![-](../public/images/usage/060_setting_anotherSet.png)
+![-](../public/images/usage/setting_060_anotherSet.png)
 
 ### wavファイル再生デバイス
 読み上げの設定でwavファイルを指定した場合に再生するデバイスを選択できます。  
@@ -118,7 +118,7 @@ Chrome拡張と連携する設定。
 
 ## 開発向け設定
 
-![-](../public/images/usage/070_setting_devlopSet.png)
+![-](../public/images/usage/setting_070_devlopSet.png)
 
 ### tegaki_save連携フォルダ
 
