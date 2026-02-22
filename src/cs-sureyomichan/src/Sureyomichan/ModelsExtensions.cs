@@ -52,11 +52,58 @@ static class ModelsExtensions {
 		/// <summary>画面表示用の日付テキストを取得</summary>
 		/// <returns></returns>
 		public string FormatDateTime() => Utils.Util.FormatFutabaDateTime(source.PostTime);
-		/// <summary><br>を改行に変換し</br>HTMLタグを除去した読み上げ用本文を取得</summary>
+		/// <summary><br>を改行に変換し</br>HTMLタグを除去した表示用本文を取得</summary>
 		/// <returns></returns>
 		public string FormatBody() => Comment2Text(source.Body);
+		/// <summary>読み上げ用の本文を取得</summary>
+		/// <returns></returns>
+		public string ToSpeakText() {
+			static string decodeFromCodePoint(string p1) {
+				if(p1[0] == '#') {
+					var span = p1.AsSpan().Slice(1);
+					if(span[0] switch {
+						'x' => true,
+						'X' => true,
+						_ => false,
+					}) {
+						span = span.Slice(1);
+						try {
+							return char.ConvertFromUtf32(
+								BitConverter.ToInt32(
+									Convert.FromHexString(span)));
+						}
+						catch(FormatException) { }
+					} else {
+						try {
+							return char.ConvertFromUtf32(
+								int.Parse(span));
+						}
+						catch(FormatException) { }
+					}
+				}
+				return "";
+			}
 
-		public Models.TegakiSaveResData ToTegakiSaveModel(bool isNg) {
+			var speakLines = source.Body.Split("<br>")
+				.Select(line => {
+					var t1 = Regex.Replace(line, @"<(\""[^\""]*\""|'[^']*'|[^'\"">])*>", "");
+					var t2 = Regex.Replace(t1, @"&([^;]+);", m => {
+						return m.Groups[1].Value.ToLower() switch {
+							"gt" => ">",
+							"lt" => "<",
+							"amp" => "&",
+							"quot" => "\"",
+							string v when v[0] == '#' => decodeFromCodePoint(v),
+							_ => "",
+						};
+					});
+					return t2;
+				});
+			return string.Join("\n", speakLines);
+		}
+
+
+		public Models.TegakiSaveResData ToTegakiSaveModel(bool isNg, ulong? imageHash, string? replaceComment=null) {
 			static string @string(string? s) => s ?? "";
 
 			var r = new Models.TegakiSaveResData() {
@@ -65,10 +112,17 @@ static class ModelsExtensions {
 				Del = source.DeleteType.FormatString(),
 				Id = @string(source.Id),
 				Email = source.Email,
-				Comment = source.Body,
+				Comment = replaceComment switch {
+					{ } x => x,
+					_ => source.Body
+				},
 				Now = source.FormatDateTime(),
 				Time = $"{Utils.Util.ToUnixTimeSeconds(source.PostTime)}",
 				TegakiNg = isNg,
+				ImageHash = imageHash switch {
+					{ } v => $"{v}",
+					_ => ""
+				},
 				SureyomiTerms = new(source.Token),
 
 				FileSource = @string(source.ImageSource),
@@ -85,9 +139,9 @@ static class ModelsExtensions {
 	}
 
 	extension(Models.FutabaResponse source) {
-		public DateTime NowDateTime => Utils.Util.FromUnixTimeSeconds(source.nowtime);
+		public DateTime NowDateTime => Utils.Util.FromUnixTimeSeconds(source.NowTime);
 		public DateTime DieDateTime => DateTime.TryParse(
-			source.dielong,
+			source.DieLong,
 			System.Globalization.CultureInfo.InvariantCulture,
 			System.Globalization.DateTimeStyles.None, out var d) switch {
 				true => d,

@@ -81,6 +81,7 @@ internal class YomiageDialogViewModel : BindableBase, IDialogAware {
 
 	public ReactiveCommandSlim<RoutedEventArgs> LoadedCommand { get; } = new();
 	public ReactiveCommandSlim ClickYomiageCommand { get; } = new();
+	public ReactiveCommandSlim ClickOpenFolderCommand { get; } = new();
 	public ReactiveCommandSlim<RoutedEventArgs> SendDelCommand { get; } = new();
 	public ReactiveCommandSlim<RoutedEventArgs> DeleteResCommand { get; } = new();
 
@@ -113,6 +114,10 @@ internal class YomiageDialogViewModel : BindableBase, IDialogAware {
 					TimeSpan y when 0 < y.Minutes => $"スレ消滅：{tt.ToString("HH:mm")}(あと{ts.ToString(@"mm\分ss\秒")})",
 					_ => $"スレ消滅：{tt.ToString("HH:mm")}(あと{ts.ToString(@"ss\秒")})",
 				};
+			},
+			OnMaxRes = () => {
+				this.ThreadDieText.Value = "最大レス数に到達しました";
+				StopYomiage();
 			},
 			OnThreadDied = () => {
 				this.ThreadDieText.Value = "スレッドが落ちました";
@@ -167,6 +172,7 @@ internal class YomiageDialogViewModel : BindableBase, IDialogAware {
 		this.SendDelCommand.Subscribe(x => this.OnDendDel(x));
 		this.DeleteResCommand.Subscribe(x => this.OnDeleteRes(x));
 		this.ClickYomiageCommand.Subscribe(_ => this.OnYomiage());
+		this.ClickOpenFolderCommand.Subscribe(_ => this.OnOpenFolder());
 	}
 
 	public bool CanCloseDialog() {
@@ -195,10 +201,14 @@ internal class YomiageDialogViewModel : BindableBase, IDialogAware {
 
 
 	private bool StartYomiage(bool isLatest) {
-		Task<bool> sageIsNgFromBody(Models.SureyomiChanModel it) => this.param.Ng?.IsNgFromBody(it)!;
-		Task<bool> safeIsNgFromImage(Models.DifferenceHash? dhash) => dhash switch {
+		Task<Models.NgResult> safeIsNgFromBody(Models.SureyomiChanModel it, Models.DifferenceHash? dhash)
+			=> this.param.Ng?.IsNgFromBody(it, dhash) switch {
+				{ } v => v,
+				_ => Task.FromResult(Models.NgResult.Default),
+			};
+		Task<Models.NgResult> safeIsNgFromImage(Models.DifferenceHash? dhash) => dhash switch {
 			{ } v => this.param.Ng?.IsNgFromImage(v)!,
-			_ => Task.FromResult(false),
+			_ => Task.FromResult(Models.NgResult.Default),
 		};
 		if(this.param == null) {
 			Utils.Logger.Instance.Error($"！！整合性エラー読み上げパラメータが初期化されていません！！");
@@ -224,7 +234,7 @@ internal class YomiageDialogViewModel : BindableBase, IDialogAware {
 
 			api.Value.Run(
 				callBack: async (x, skip) => {
-					void yomiSpeak(Models.SureyomiChanModel m) {
+					void yomiSpeak(string m) {
 						if(!skip) {
 							yomiage.EnqueueSpeak(m);
 						}
@@ -235,6 +245,10 @@ internal class YomiageDialogViewModel : BindableBase, IDialogAware {
 						}
 					}
 					bool isOld() => (x.DieTime - x.CurrentTime).TotalMilliseconds < this.param.Config.Get().YomiageOldTime;
+					Task<Models.NgResult> delay(int milisec) => Task.Run(async () => {
+						await Task.Delay(milisec);
+						return Models.NgResult.Default;
+					});
 
 					var speak = new List<Models.SureyomiChanModel>();
 					var disp = new List<BindableSureyomi>();
@@ -242,33 +256,50 @@ internal class YomiageDialogViewModel : BindableBase, IDialogAware {
 					foreach(var it in x.NewReplies) {
 						var attachment = default((bool IsSucessed, Models.AttachmentObject? Attachment)?);
 						var dHash = default(Models.DifferenceHash?);
-						var isNg = await sageIsNgFromBody(it);
-						if(!isNg) {
-							if(it.ImageFileName is { }) {
-								try {
-									var di = await it.Interaction.DownloadImage();
-									if(di.ImageFileBytes is { }) {
-										dHash = Models.DifferenceHash.From(it.ImageFileName, di.ImageFileBytes);
-										isNg = await safeIsNgFromImage(dHash);
-									}
-									attachment = (true, di);
+						if(it.ImageFileName is { }) {
+							try {
+								var di = await it.Interaction.DownloadImage();
+								if(di.ImageFileBytes is { }) {
+									dHash = Models.DifferenceHash.From(it.ImageFileName, di.ImageFileBytes);
 								}
-								catch(Exceptions.SureyomiChanException ex) {
-									Utils.Logger.Instance.Error(ex);
-									attachment = (false, null);
-								}
-								await Task.Delay(500);
+								attachment = (true, di);
+							}
+							catch(Exceptions.SureyomiChanException ex) {
+								Utils.Logger.Instance.Error(ex);
+								attachment = (false, null);
+							}
+						}
+
+						var isNg = false;
+						var body = it.ToSpeakText();
+						foreach(var it2 in await Task.WhenAll(
+							safeIsNgFromBody(it, dHash),
+							safeIsNgFromImage(dHash),
+							delay(500))) {
+							isNg |= it2.IsNg;
+							if(0 < it2.ReplaceBody.Length) {
+								body = it2.ReplaceBody;
 							}
 						}
 
 						if(!isNg) {
-							yomiSpeak(it);
+							yomiSpeak(
+								string.Join('\n',
+									body.Replace("\r", "")
+										.Split("\n")
+										.Select(x => x switch {
+											{ } v when v.FirstOrDefault() == '>' => $"{this.param.Config.Get().AppendSpecialTag}{x.Substring(1)}",
+											{ } v => v,
+											_ => "",
+										}))
+								);
+							
 							if(attachment?.Attachment is { } att) {
 								yomiImage(att);
 								await this.param.AttachmentWriter.Save(it, att);
 							}
 							if(this.param.Config.Get().IsEnabledUpFile) {
-								var _ = this.param.AttachmentWriter.DownloadShio(it);
+								_ = this.param.AttachmentWriter.DownloadShio(it);
 							}
 						}
 						if(attachment?.Attachment is { } ao && ao.ImageFileBytes is { }) {
@@ -279,12 +310,15 @@ internal class YomiageDialogViewModel : BindableBase, IDialogAware {
 								ao.ImageFileBytes);
 						}
 						disp.Add(new(it, attachment, dHash?.Value, isNg));
-						this.param.Store.Add(this.param.ThreadNo, it, isNg);
+						this.param.Store.Add(this.param.ThreadNo, it, isNg, dHash?.Value);
 					}
 
 					await this.param.AttachmentWriter.UpdateThreadNo(x);
 					if(x.SupportFeature.IsSupportThreadOld && isOld()) {
 						yomiage.SpeakOld();
+					}
+					if(x.IsMaxRes) {
+						yomiage.SpeakMaxRes();
 					}
 					if(x.SupportFeature.IsSupportThreadDie && !x.IsAlive) {
 						yomiage.SpeakDead();
@@ -369,6 +403,21 @@ internal class YomiageDialogViewModel : BindableBase, IDialogAware {
 			this.StartYomiage(false);
 		} else {
 			this.StopYomiage();
+		}
+	}
+
+	private void OnOpenFolder() {
+		if(this.param is { } && Utils.Util.GetSaveDirectoryPath(
+			this.param.Config.Get(),
+			this.param.Url.BoardId,
+			this.param.ThreadNo) is { } d
+			&& System.IO.Directory.Exists(d)) {
+		
+			System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(d) {
+				UseShellExecute = true
+			});
+		} else {
+			this.EnqueueErrorMessage("まだ何も保存されていません");
 		}
 	}
 }

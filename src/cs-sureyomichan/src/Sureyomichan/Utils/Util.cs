@@ -233,5 +233,18 @@ static class Util {
 		}
 		return r.AsReadOnly();
 	}
+
+	public static string GetSaveDirectoryPath(Models.Config config, SureyomiChanBoardId boardId, int threadNo) {
+		var root = config.PathDwonloadValue;
+		var sb = new StringBuilder(config.SaveSubFolderName);
+		sb.Replace("$Board", $"{SureyomiChanEnviroment.GetStaticString(boardId)}");
+		sb.Replace("$Thread", $"{threadNo}");
+		var sub = sb.ToString();
+
+		return !string.IsNullOrWhiteSpace(sub) switch {
+			true => Path.Combine(root, sub),
+			_ => root,
+		};
+	}
 }
 

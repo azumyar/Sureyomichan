@@ -1,4 +1,3 @@
-using NAudio.Wave;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -6,12 +5,16 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
+using NAudio.CoreAudioApi;
+using NAudio.Wave;
+
 namespace Haru.Kei.SureyomiChan.Core;
 
 class Yomiage(BouyomiChan bouyomi, IConfigProxy config) {
 	private bool stateStart = false;
 	private bool stateOld = false;
 	private bool stateDie = false;
+	private bool stateMaxRes = false;
 
 	public void SpeakStarted() {
 		if (!stateStart) {
@@ -34,12 +37,41 @@ class Yomiage(BouyomiChan bouyomi, IConfigProxy config) {
 		stateDie = true;
 	}
 
+	public void SpeakMaxRes() {
+		if(!stateMaxRes) {
+			this.EnqueueSpeak(SureyomiChanEnviroment.YomiageMaxResText);
+		}
+		stateMaxRes = true;
+	}
+
 	public void SaveImage() {
 		this.DoYomiage(config.Get().YomiageSaveTegaki);
 	}
 
 	public void DoYomiage(Models.YomiageConfig c) {
-		static void file(Models.YomiageConfig c) {
+		void file() {
+			MMDevice device() {
+				using var @enmu = new MMDeviceEnumerator();
+				MMDevice? device = null;
+				var id = config.Get().UsedSoundDevice;
+				if(!string.IsNullOrEmpty(id)) {
+					try {
+						device = @enmu.GetDevice(id);
+					}
+					catch(System.Runtime.InteropServices.COMException ex) {
+						Utils.Logger.Instance.Error("再生デバイスが見つかりません");
+						Utils.Logger.Instance.Error(ex);
+					}
+				}
+
+				return device switch {
+					{ } => device,
+					_ => @enmu.GetDefaultAudioEndpoint(
+						DataFlow.Render,
+						Role.Console)
+				};
+			}
+
 			var file = Path.IsPathFullyQualified(c.File) switch {
 				true => c.File,
 				_ => Path.Combine(AppContext.BaseDirectory, "assets", "sound", c.File)
@@ -47,7 +79,11 @@ class Yomiage(BouyomiChan bouyomi, IConfigProxy config) {
 			Task.Run(() => {
 				var reader = new AudioFileReader(file);
 
-				WaveOut waveOut = new WaveOut();
+				var waveOut = new WasapiOut(
+					device: device(),
+					shareMode: AudioClientShareMode.Shared,
+					useEventSync: true,
+					latency: 200);
 				waveOut.Init(reader);
 				waveOut.Play();
 
@@ -59,7 +95,7 @@ class Yomiage(BouyomiChan bouyomi, IConfigProxy config) {
 		case Models.YomiageConfig.YomiageMethodOff:
 			break;
 		case Models.YomiageConfig.YomiageMethodFile:
-			file(c);
+			file();
 			break;
 		case Models.YomiageConfig.YomiageMethodText:
 			this.EnqueueSpeak(c.Text);
@@ -69,64 +105,6 @@ class Yomiage(BouyomiChan bouyomi, IConfigProxy config) {
 
 	public void EnqueueSpeak(string text) {
 		bouyomi.EnqueueSpeak(text);
-	}
-
-	public void EnqueueSpeak(Models.SureyomiChanModel reply) {
-		bouyomi.EnqueueSpeak(this.ParseResBody(reply.Body));
-	}
-
-	public void EnqueueSpeak(IEnumerable<Models.SureyomiChanModel> replies) {
-		bouyomi.EnqueueSpeak(replies.Select(x => this.ParseResBody(x.Body)).ToArray());
-	}
-
-	private string ParseResBody(string body) {
-		var speakLines = body.Split("<br>")
-			.Select(line => {
-				var t1 = Regex.Replace(line, @"<(\""[^\""]*\""|'[^']*'|[^'\"">])*>", "");
-				var t2 = Regex.Replace(t1, @"&([^;]+);", m => {
-					return m.Groups[1].Value.ToLower() switch {
-						"gt" => ">",
-						"lt" => "<",
-						"amp" => "&",
-						"quot" => "\"",
-						string v when v[0] == '#' => this.DecodeFromCodePoint(v),
-						_ => "",
-					};
-				});
-
-				string tegakiStorage_resTag = "___";
-				return t2.FirstOrDefault() switch {
-					'>' => $"{tegakiStorage_resTag}{t2}",
-					_ => t2
-				};
-			});
-		return string.Join("\n", speakLines);
-	}
-
-	private string DecodeFromCodePoint(string p1) {
-		if (p1[0] == '#') {
-			var span = p1.AsSpan().Slice(1);
-			if (span[0] switch {
-				'x' => true,
-				'X' => true,
-				_ => false,
-			}) {
-				span = span.Slice(1);
-				try {
-					return char.ConvertFromUtf32(
-						BitConverter.ToInt32(
-							Convert.FromHexString(span)));
-				}
-				catch (FormatException) { }
-			} else {
-				try {
-					return char.ConvertFromUtf32(
-						int.Parse(span));
-				}
-				catch (FormatException) { }
-			}
-		}
-		return "";
 	}
 }
 

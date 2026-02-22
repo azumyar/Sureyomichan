@@ -15,7 +15,7 @@ class ConfigObject(int version) : JsonObject {
 }
 
 class Config : ConfigObject {
-	public static readonly int CurrentVersion = 20251229;
+	public static readonly int CurrentVersion = 20260130;
 
 	public static Config DefaultConfig { get; } = new() {
 		SaveSubFolderName = "$Board$Thread",
@@ -55,7 +55,18 @@ class Config : ConfigObject {
 		NijiuraChanPasswd = "",
 		PathDwonload = "",
 		PathLegacyTegakiSave2 = "",
-		OpenWebViewDevTool = false
+		OpenWebViewDevTool = false,
+
+		// 20260130
+		IsEnabledConvertObs = false,
+		IsEnabledLogSave = false,
+		YomiageSoudane = new() {
+			Method = YomiageConfig.YomiageMethodText,
+			File = "soudane.wav",
+			Text = "そうだねかけるいち"
+		},
+		IsEnabledAutoDleteIdRes = false,
+		UsedSoundDevice = ""
 	};
 
 	[JsonPropertyName("save-root-path")]
@@ -130,6 +141,24 @@ class Config : ConfigObject {
 	[JsonPropertyName("tegaki_save-enabled-dev-tools")]
 	[JsonInclude]
 	public required bool OpenWebViewDevTool { get; init; }
+
+
+	// 20260130
+	[JsonPropertyName("save-enabled-convert-obs")]
+	[JsonInclude]
+	public required bool IsEnabledConvertObs { get; init; }
+	[JsonPropertyName("save-enabled-log-save")]
+	[JsonInclude]
+	public required bool IsEnabledLogSave { get; init; }
+	[JsonPropertyName("nijiurachan-yomiage-soudane")]
+	[JsonInclude]
+	public required YomiageConfig YomiageSoudane { get; init; }
+	[JsonPropertyName("other-enabled-auto-delete" /* 現在の分類では該当するカテゴリがないのでその他に置く */)]
+	[JsonInclude]
+	public required bool IsEnabledAutoDleteIdRes { get; init; }
+	[JsonPropertyName("other-use-output-sound-device" /* 現在の分類では該当するカテゴリがないのでその他に置く */)]
+	[JsonInclude]
+	public required string UsedSoundDevice { get; init; }
 
 
 	[JsonIgnore]

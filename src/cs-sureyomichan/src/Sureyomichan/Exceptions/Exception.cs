@@ -13,6 +13,12 @@ class SureyomiChanException : Exception {
 
 class ImageNotSupportException : SureyomiChanException {}
 
+class ImageConvertException : SureyomiChanException {
+
+	public ImageConvertException(string message, Exception innerException) : base(message, innerException) { }
+}
+
+
 class ApiHttpErrorException : SureyomiChanException {
 	public string Url { get; }
 	public HttpRequestException HttpRequestException { get; }

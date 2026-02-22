@@ -52,6 +52,7 @@ class MainWindowViewModel : BindableBase {
 	public ReadOnlyReactivePropertySlim<Visibility> StartPageVisibility { get; }
 	public ReadOnlyReactivePropertySlim<Visibility> MainPageVisibility { get; }
 	public ReadOnlyReactivePropertySlim<Visibility> ConfigPageVisibility { get; }
+	public ReadOnlyReactivePropertySlim<Visibility> InitialSettingVisibility { get; }
 
 	public ReactiveCollection<BindableItem> Yomiage { get; } = new();
 	public ReactivePropertySlim<string> Url { get; } = new(initialValue: "");
@@ -76,8 +77,8 @@ class MainWindowViewModel : BindableBase {
 
 	private readonly IDialogService dialogService;
 
-	public MainWindowViewModel(IDialogService navigationService) {
-		this.dialogService = navigationService;
+	public MainWindowViewModel(IDialogService dialogService) {
+		this.dialogService = dialogService;
 		this.FutabaUrl = Utils.Singleton.Instance.FutabaUrl;
 		this.NijiuraChanUrl = Utils.Singleton.Instance.NijiuraChanUrl;
 		this.attachmentWriter = new(config: this.config, uiDispatcher: this.uiDispatcher);
@@ -94,6 +95,10 @@ class MainWindowViewModel : BindableBase {
 		this.ConfigPageVisibility = this.Layout.Select(x => x switch {
 			LayoutMode.Config => Visibility.Visible,
 			_ => Visibility.Collapsed,
+		}).ToReadOnlyReactivePropertySlim();
+		this.InitialSettingVisibility = this.initConfig.Select(x => x switch {
+			true => Visibility.Collapsed,
+			_ => Visibility.Visible,
 		}).ToReadOnlyReactivePropertySlim();
 
 
@@ -115,7 +120,7 @@ class MainWindowViewModel : BindableBase {
 	}
 
 	private const string SchemeName = "sureyomichan";
-	private bool initConfig = false;
+	private readonly ReactivePropertySlim<bool> initConfig = new(initialValue: false);
 	private readonly Core.ConfigProxy config = new();
 	private readonly Core.UiMessageMultiDispatcher uiDispatcher = new();
 	private readonly Core.AttachmentWriter attachmentWriter;
@@ -134,24 +139,10 @@ class MainWindowViewModel : BindableBase {
 	private readonly ReactivePropertySlim<Core.SureyomiChanApiLooper?> api = new (initialValue: null);
 
 	private void LoadConfig() {
-		// 動けばいいやの実装
-		try {
-			var json = File.ReadAllText(SureyomiChanEnviroment.GetStaticString(SureyomiChanStaticItem.ConfigFile));
-			var cm = JsonSerializer.Deserialize<ConfigObject>(json);
-			if((cm?.Version ?? 0) < Config.CurrentVersion) {
-				// TODO: マイグレ
-				// 開発中なので破棄する
-			} else {
-				var config = JsonSerializer.Deserialize<Config>(json);
-				if(config is { }) {
-					this.config.Update(config);
-					this.initConfig = true;
-				} else {
-
-				}
-			}
+		if(new Helpers.ConfigLoader().Load() is { } config) {
+			this.config.Update(config);
+			this.initConfig.Value = true;
 		}
-		catch(Exception ex) { }
 	}
 
 	private void OnLoaded(RoutedEventArgs e) {
@@ -169,7 +160,7 @@ class MainWindowViewModel : BindableBase {
 		}
 		Utils.Singleton.Instance.StartupSequence.End(hwnd);
 
-		if(!this.initConfig) {
+		if(!this.initConfig.Value) {
 			this.Layout.Value = LayoutMode.Config;
 		} else {
 			this.Layout.Value = LayoutMode.Start;
@@ -221,6 +212,7 @@ class MainWindowViewModel : BindableBase {
 	private void OnSaveConfig() { 
 		this.config.Update(this.BindableConfig.Value.Save());
 		this.Layout.Value = LayoutMode.Start;
+		this.initConfig.Value = true;
 	}
 
 	private async void OnAddUrlScheme() {

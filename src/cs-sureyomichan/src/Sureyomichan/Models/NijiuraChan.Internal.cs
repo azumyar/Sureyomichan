@@ -183,4 +183,20 @@ class NijiuraChanAattachmentInternal {
 	[JsonPropertyName("size")]
 	[JsonInclude]
 	public int Size { get; private set; }
+
+	[JsonPropertyName("is_oekaki")]
+	[JsonInclude]
+	public bool IsOekaki { get; private set; }
+	[JsonPropertyName("width")]
+	[JsonInclude]
+	public int Width { get; private set; }
+	[JsonPropertyName("height")]
+	[JsonInclude]
+	public int Height { get; private set; }
+	[JsonPropertyName("ng_hash")]
+	[JsonInclude]
+	public string NgHash { get; private set; } = "";
+	[JsonPropertyName("is_animated")]
+	[JsonInclude]
+	public bool IsAnimated { get; private set; }
 }

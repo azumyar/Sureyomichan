@@ -67,6 +67,10 @@ class TegakiSaveResData : JsonObject {
 	[JsonPropertyName("__tegaki_res")]
 	[JsonInclude]
 	public List<TegakiSaveResData>? TegakiRes { get; set; } = null;
+	// ulongの最大値はnumberに入りきらないので文字列で渡す
+	[JsonPropertyName("__sureyomi_image_hash")]
+	[JsonInclude]
+	public string ImageHash { get; set; } = "";
 	[JsonPropertyName("__sureyomi_terms")]
 	[JsonInclude]
 	public List<Token>? SureyomiTerms { get; set; } = null;

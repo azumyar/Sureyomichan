@@ -1,4 +1,3 @@
-using ControlzEx.Standard;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -18,6 +17,7 @@ using System.Windows.Threading;
 
 namespace Haru.Kei.SureyomiChan.Core; 
 class AttachmentWriter {
+	private System.Reactive.Concurrency.EventLoopScheduler ConvertScheduler { get; } = new();
 	private readonly Helpers.SerialRunner downloadRunner;
 
 	private readonly string saveFileNamePng = "tegaki.png";
@@ -133,7 +133,18 @@ class AttachmentWriter {
 					}
 					static Task saveWebP(string path, byte[] or, byte[] im) {
 						return Task.Run(() => {
+							using var imageStream = new MemoryStream(im);
+							var d = BitmapDecoder.Create(
+								imageStream,
+								BitmapCreateOptions.None,
+								BitmapCacheOption.OnLoad);
 
+							using var fs = new FileStream(
+								path,
+								FileMode.OpenOrCreate);
+							BitmapEncoder enc = new PngBitmapEncoder();
+							enc.Frames.Add(BitmapFrame.Create(d.Frames.First()));
+							enc.Save(fs);
 						});
 					}
 					static Task saveMovie(string path, byte[] or, byte[] im) {
@@ -177,8 +188,15 @@ class AttachmentWriter {
 					if(Directory.Exists(saveRoot)) {
 						try {
 							await File.WriteAllBytesAsync(Path.Combine(saveRoot, attachment.FileName), orig);
+
+							// 変換処理
+							if(config.Get().IsEnabledConvertObs) {
+								this.ConvertForObs(saveRoot, attachment.FileName, orig);
+							}
 						}
-						catch(Exception ex) when(ex is System.IO.IOException) {
+						catch(Exception ex) when((ex is System.IO.IOException)
+							|| (ex is Exceptions.SureyomiChanException)) {
+
 							Utils.Logger.Instance.Error(ex);
 						}
 					} else {
@@ -236,12 +254,21 @@ class AttachmentWriter {
 					using var r = await Utils.Util.Http(() => Utils.Singleton.Instance.HttpClient.GetAsync(u));
 					using var rs = await r.Content.ReadAsStreamAsync();
 					using var ws = new FileStream(filePath, FileMode.OpenOrCreate);
+					using var ms = new MemoryStream();
 					var b = new byte[1024];
 					while((await rs.ReadAsync(b, 0, b.Length)) is int size && (0 < size)) {
-						await ws.WriteAsync(b, 0, size);
+						await Task.WhenAll(
+							ws.WriteAsync(b, 0, size),
+							ms.WriteAsync(b, 0, size)
+						);
 					}
 					await ws.FlushAsync();
 					Utils.Logger.Instance.Info($"ファイルをダウンロードしました => {u}");
+
+					// 変換処理
+					if(config.Get().IsEnabledConvertObs) {
+						this.ConvertForObs(saveRoot, fileName, ms.ToArray());
+					}
 					await Task.Delay(500);
 				}
 				catch(Exception ex) when(ex is System.IO.IOException) {
@@ -259,15 +286,14 @@ class AttachmentWriter {
 		}
 	}
 	private string GetSaveDirectoryWithCreate(Models.SureyomiChanModel model) {
-		string saveRoot = this.config.Get().PathDwonloadValue;
-		var fd = this.GetSaveDirectoryName(model);
-		if(!string.IsNullOrWhiteSpace(fd)) {
-			saveRoot = Path.Combine(saveRoot, fd);
-		}
+		var saveRoot = Utils.Util.GetSaveDirectoryPath(
+			this.config.Get(),
+			model.Interaction.BoardId,
+			model.ThreadNo);
 
 		// 存在しない場合フォルダを作る
 		if(!Directory.Exists(saveRoot)) {
-			Utils.Logger.Instance.Info($"保存フォルダを作成します => {fd}");
+			Utils.Logger.Instance.Info($"保存フォルダを作成します => {Path.GetDirectoryName(saveRoot)}");
 			try {
 				Directory.CreateDirectory(saveRoot);
 			}
@@ -276,9 +302,40 @@ class AttachmentWriter {
 		return saveRoot;
 	}
 
+
+	private void ConvertForObs(string saveRoot, string fileName, byte[] fileBytes) {
+		Observable.Create<int>(o => {
+			try {
+				Utils.Logger.Instance.Info($"OBS用変換を開始します => {fileName}");
+				var task = Path.GetExtension(fileName).ToLower() switch {
+					".png" => Utils.ImageUtil.ConvertApng2Gif,
+					".webp" => Utils.ImageUtil.ConvertAwebp2Gif,
+					_ => default(Func<byte[], string, string, bool>?)
+				};
+				if(task is { }) {
+					task(
+						fileBytes,
+						saveRoot,
+						$"{Path.GetFileNameWithoutExtension(fileName)}.conv");
+				}
+			}
+			catch(Exception ex) {
+				Utils.Logger.Instance.Error(ex);
+			}
+			finally {
+				Utils.Logger.Instance.Info($"OBS用変換が終了しました => {fileName}");
+				o.OnCompleted();
+			}
+			return System.Reactive.Disposables.Disposable.Empty;
+		}).SubscribeOn(this.ConvertScheduler)
+			.Subscribe();
+
+	}
+
 	private async Task SaveHtml((Models.SureyomiChanModel Model, Models.AttachmentObject Attachment)? arg) {
 		// OBS用のtegaki.htmlを出力
 		// 検討中
+		/*
 		string? src() {
 			if(arg is { } a) {
 				var dir = this.GetSaveDirectoryName(a.Model);
@@ -298,15 +355,9 @@ class AttachmentWriter {
 		await File.WriteAllBytesAsync(
 			tegakiHtmlPath,
 			Encoding.UTF8.GetBytes(this.ToHtml(src())));
+		*/
+		await Task.Yield();
 	}
-
-	private string GetSaveDirectoryName(Models.SureyomiChanModel model) {
-		var sb = new StringBuilder(this.config.Get().SaveSubFolderName);
-		sb.Replace("$Board", $"{SureyomiChanEnviroment.GetStaticString(model.Interaction.BoardId)}");
-		sb.Replace("$Thread", $"{model.ThreadNo}");
-		return sb.ToString();
-	}
-
 
 	private string ToHtml(string? src) {
 		static string nopHtml() => $@"<!doctype html>
