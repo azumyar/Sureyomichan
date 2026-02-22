@@ -1,4 +1,3 @@
-using Haru.Kei.SureyomiChan.Utils;
 using Microsoft.Web.WebView2.Core;
 using System;
 using System.Collections.Generic;
@@ -58,8 +57,19 @@ import('{plugin_js.Replace('\\', '/')}')
 		}
 
 		await this.webView2.CoreWebView2.ExecuteScriptAsync(@$"
-function __runNgPlugins(json) {{
-	const res = JSON.parse(json);
+function __fromBase64(b) {{
+	return  new TextDecoder()
+		.decode(Uint8Array.fromBase64(b));
+}}
+
+function __toBase64(s) {{
+	return new TextEncoder()
+		.encode(s)
+		.toBase64();
+}}
+
+function __runNgPlugins(base64) {{
+	const res = JSON.parse(__fromBase64(base64));
 	const tegaki = JSON.parse(chrome.webview.hostObjects.sync.TegakiSaveObject.GetStore(parseInt(res.resNo)));
 	res.__tegaki_res = tegaki.res;
 	const pResult = runPlugins({{
@@ -94,7 +104,7 @@ function __runNgPlugins(json) {{
 
 				CoreInitialized?.Invoke(this, EventArgs.Empty);
 			} else {
-				Logger.Instance.Error($"tegaki_saveプラグイン設定が不正です。連携を停止します。 => {this.localRoot}");
+				Utils.Logger.Instance.Error($"tegaki_saveプラグイン設定が不正です。連携を停止します。 => {this.localRoot}");
 			}
 		}
 	}
@@ -107,9 +117,10 @@ function __runNgPlugins(json) {{
 					var json = x.ToTegakiSaveModel(
 						isNg: false,
 						imageHash: imageHash,
-						replaceComment: x.Body.Replace('\"', '\''))
+						replaceComment: x.Body)
 						.ToString(writeIndented: false);
-					var r = await this.webView2.CoreWebView2.ExecuteScriptAsync($"__runNgPlugins('{json}')");
+					var base64 = Convert.ToBase64String(Encoding.UTF8.GetBytes(json));
+					var r = await this.webView2.CoreWebView2.ExecuteScriptAsync($"__runNgPlugins('{base64}')");
 					if(r == "null") {
 						return null;
 					}
@@ -138,24 +149,17 @@ function __runNgPlugins(json) {{
     const xmlHttpApi = new XMLHttpRequest();    
     xmlHttpApi.open('GET', '{url}', false);
     xmlHttpApi.send(null);
-	xmlHttpApi.responseText;
+
+	__toBase64(xmlHttpApi.responseText);
 }}
 ");
 					if(r == "null") {
 						return "";
 					}
 
-					var s = Regex.Replace(r, @"\\u(....)", m => {
-						int charCode16 = Convert.ToInt32(m.Groups[1].Value, 16);
-						char c = Convert.ToChar(charCode16);
-						return c.ToString();
-					});
-					s = Regex.Replace(s, @"\\(.)", m => {
-						return m.Groups[1].Value switch {
-							_ => m.Groups[1].Value,
-						};
-					});
-					return s.Substring(1, s.Length - 2);
+					return Encoding.UTF8.GetString(
+						Convert.FromBase64String(
+							r.Substring(1, r.Length - 2)));
 				}), default);
 		if(task is { }) {
 			return await task;
