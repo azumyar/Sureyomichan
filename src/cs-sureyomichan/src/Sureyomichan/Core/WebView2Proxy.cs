@@ -18,7 +18,7 @@ class WebView2Proxy {
 	private readonly string localRoot;
 	private readonly bool isOpenWebViewDevTool;
 
-	public event EventHandler? CoreInitialized;
+	public event EventHandler? Initialized;
 
 	// WebView2Proxyの設定更新は再起動が必要
 	public WebView2Proxy(
@@ -82,6 +82,7 @@ function __runNgPlugins(base64) {{
 	}});
 	return JSON.stringify(pResult);
 }}");
+		Initialized?.Invoke(this, EventArgs.Empty);
 	}
 
 	private async void OnWebViewInitialization(object? sender, CoreWebView2InitializationCompletedEventArgs e) {
@@ -103,8 +104,6 @@ function __runNgPlugins(base64) {{
 				this.webView2.CoreWebView2.AddHostObjectToScript(
 					"TegakiSaveObject",
 					new HostObject(tegakiSaveStore));
-
-				CoreInitialized?.Invoke(this, EventArgs.Empty);
 			} else {
 				Utils.Logger.Instance.Error($"tegaki_saveプラグイン設定が不正です。連携を停止します。 => {this.localRoot}");
 			}

@@ -11,6 +11,7 @@ partial class SureyomiChanApiLooper : IDisposable {
 		IObservable<Models.SureyomiChanResponse> GetThread(int? latestResNo);
 	}
 
+	private readonly System.Threading.CountdownEvent condition = new(1);
 	private readonly UiMessageDispatcher uiMsgDispatcher;
 	private readonly IConfigProxy config;
 	private readonly CancellationTokenSource cancel;
@@ -52,6 +53,7 @@ partial class SureyomiChanApiLooper : IDisposable {
 					Utils.Logger.Instance.Info($"API呼び出しを開始 => worker={this.worker.GetType().Name}, latestNo={latestNo}, skip={skip}");
 					uiMsgDispatcher.DispatchBeginGetApi();
 
+					this.condition.Reset();
 					worker.GetThread(latestNo)
 						.Subscribe(async x => {
 							Utils.Logger.Instance.Info($"API呼び出しが成功");
@@ -66,7 +68,10 @@ partial class SureyomiChanApiLooper : IDisposable {
 						}, ex => {
 							uiMsgDispatcher.DispatchEndGetApi(false, null);
 							Utils.Logger.Instance.Error(ex);
+						}, () => {
+							this.condition.Signal();
 						});
+					this.condition.Wait();
 					await Task.Delay(5000);
 				}
 			}, this.cancel.Token);
