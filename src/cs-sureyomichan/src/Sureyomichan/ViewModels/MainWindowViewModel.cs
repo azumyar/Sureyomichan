@@ -176,7 +176,7 @@ class MainWindowViewModel : BindableBase {
 			Utils.Logger.Instance.Info("WebView2が初期化されました");
 			this.edge = new(wv2, this.tegakiSaveStore, config.Get());
 			this.ng = new(this.edge, this.config);
-			this.edge.CoreInitialized += (_, _) => {
+			this.edge.Initialized += (_, _) => {
 				// CoreWebViewが初期化されたタイミングでコマンドライン解析
 				if(Utils.Util.ParseCommandLine(Environment.CommandLine) is { } p) {
 					if(this.StartYomiage(p.Board, p.ThreadNo, p.IsLatest)) {
