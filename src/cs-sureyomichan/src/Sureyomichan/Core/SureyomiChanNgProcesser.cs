@@ -23,8 +23,8 @@ class SureyomiChanNgProcesser(WebView2Proxy webView2, ConfigProxy config) {
 				true => Utils.Logger.Instance.Error,
 				_ => Utils.Logger.Instance.Info,
 			};
-			if(string.IsNullOrEmpty(ret.Message)) {
-				func(ret.Message);
+			if(!string.IsNullOrEmpty(ret.Message)) {
+				func($"tegaki_saveからのメッセ―ジ => {ret.Message}");
 			}
 		}
 		return ToResult(ret);
