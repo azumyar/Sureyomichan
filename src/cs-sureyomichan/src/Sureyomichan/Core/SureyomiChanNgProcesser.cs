@@ -18,6 +18,15 @@ class SureyomiChanNgProcesser(WebView2Proxy webView2, ConfigProxy config) {
 		}
 
 		var ret = await webView2.RunPlugin(m, dhash?.Value);
+		if(ret is { }) {
+			Action<string> func = ret.IsError switch {
+				true => Utils.Logger.Instance.Error,
+				_ => Utils.Logger.Instance.Info,
+			};
+			if(string.IsNullOrEmpty(ret.Message)) {
+				func(ret.Message);
+			}
+		}
 		return ToResult(ret);
 	}
 

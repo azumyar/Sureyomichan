@@ -68,7 +68,6 @@ class BindableSureyomiChanModel : INotifyPropertyChanged {
 	public IReadOnlyReactiveProperty<Visibility> SendDelVisibility { get; }
 	public IReadOnlyReactiveProperty<Visibility> DeleteResVisibility { get; }
 
-
 	private IDisposable? deleteSubscriber = null;
 	private double __deleteProgress = 0d;
 	private const int DeleteGraceTimeMiliSec = 2000;
@@ -120,24 +119,24 @@ class BindableSureyomiChanModel : INotifyPropertyChanged {
 			_ => Visibility.Collapsed
 		});
 
-		this.ResVisibility = this.DeleteType
-			.Select(x => x switch {
-				Models.SureyomiChanDeleteType.None => Visibility.Visible,
-				_ => Visibility.Collapsed,
-			}).ToReadOnlyReactivePropertySlim();
-		this.NgVisibility = this.DeleteType
-			.Select(x => x switch {
-				Models.SureyomiChanDeleteType.None => Visibility.Collapsed,
-				_ => Visibility.Visible,
-			}).ToReadOnlyReactivePropertySlim();
 		this.NgText = this.DeleteType
 			.CombineLatest(this.IsNg, (x, ng) => (x, ng) switch {
 				{ } v when v.ng => "NGレス",
 				{ } v when v.x == Models.SureyomiChanDeleteType.DeleteFromOwner => "スレッドを立てた人によって削除されました",
 				{ } v when v.x == Models.SureyomiChanDeleteType.DeleteFromDel => "削除依頼によって隔離されました",
-				{ } v when v.x == Models.SureyomiChanDeleteType.SelfDelete => model.Body,
+				{ } v when v.x == Models.SureyomiChanDeleteType.SelfDelete => "書き込みをした人によって削除されました",
 				_ => "",
 			}).ToReadOnlyReactivePropertySlim<string>();
+		this.ResVisibility = this.NgText
+			.Select(x => x switch {
+				{ } v when string.IsNullOrEmpty(v) => Visibility.Visible,
+				_ => Visibility.Collapsed,
+			}).ToReadOnlyReactivePropertySlim();
+		this.NgVisibility = this.NgText
+			.Select(x => x switch {
+				{ } v when !string.IsNullOrEmpty(v) => Visibility.Visible,
+				_ => Visibility.Collapsed,
+			}).ToReadOnlyReactivePropertySlim();
 		this.IsId = this.Id.Select(x => x is { }).ToReadOnlyReactivePropertySlim();
 
 		this.Model = model;
