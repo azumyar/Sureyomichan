@@ -48,11 +48,13 @@ class WebView2Proxy {
 			var plugin_js = it.AsSpan().Slice(localRoot.Length).ToString();
 			Utils.Logger.Instance.Info($"互換JavaScriptプラグインの読み込み => {plugin_js}");
 			await this.webView2.CoreWebView2.ExecuteScriptAsync(@$"
-import('{plugin_js.Replace('\\', '/')}')
-  .then(m => {{
-    loadModule(m);
-    //console.log(tegakiPlugins);
-  }})
+{{
+	let file = '{plugin_js.Replace('\\', '/')}';
+	import(file)
+	  .then(m => {{
+		loadModule(m, file);
+	  }})
+}}
 ");
 		}
 
