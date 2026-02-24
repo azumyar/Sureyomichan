@@ -53,7 +53,6 @@ class WebView2Proxy {
 	let file = '{plugin_js.Replace('\\', '/')}';
 	import(file)
 	  .then(m => {{
-		console.log(file);
 		loadModule(m, file);
 	  }})
 }}
