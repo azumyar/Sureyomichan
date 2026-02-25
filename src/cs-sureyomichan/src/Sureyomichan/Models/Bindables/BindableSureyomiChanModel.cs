@@ -27,6 +27,7 @@ class BindableSureyomiChanModel : INotifyPropertyChanged {
 	public IReadOnlyReactiveProperty<string> Body { get; }
 	public IReadOnlyReactiveProperty<string?> Id { get; }
 	public IReadOnlyReactiveProperty<bool> IsId { get; }
+	public IReadOnlyReactiveProperty<string> IdString { get; }
 
 	public IReadOnlyReactiveProperty<Visibility> ImageErrorVisibility { get; }
 	public IReadOnlyReactiveProperty<string?> ImageName { get; }
@@ -138,6 +139,10 @@ class BindableSureyomiChanModel : INotifyPropertyChanged {
 				_ => Visibility.Collapsed,
 			}).ToReadOnlyReactivePropertySlim();
 		this.IsId = this.Id.Select(x => x is { }).ToReadOnlyReactivePropertySlim();
+		this.IdString = this.Id.Select(x => x switch {
+			{ } v => v,
+			_ => ""
+		}).ToReadOnlyReactivePropertySlim<string>();
 
 		this.Model = model;
 	}

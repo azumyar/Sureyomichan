@@ -20,6 +20,15 @@
         </i:EventTrigger>
     </i:Interaction.Triggers>
     -->
+    <UserControl.Resources>
+
+        <SolidColorBrush x:Key="MailTextBrush" Color="{StaticResource MaterialBlue600}" />
+        <SolidColorBrush x:Key="IdTextBrush" Color="{StaticResource MaterialRed600}" />
+
+
+    </UserControl.Resources>
+    
+    
     <Grid>
         <Border Background="{StaticResource MaterialDesign.Brush.Primary.Light}">
             <Grid>
@@ -121,14 +130,17 @@
                                                     >
                                                     <Run Text="{Binding ResIndex.Value, Mode=OneWay}" />
                                                     <Run
+                                                        Foreground="{DynamicResource MailTextBrush}"
                                                         Text="{Binding Email.Value, Mode=OneWay}" />
                                                 </TextBlock>
                                                 <TextBlock
                                                     Grid.Column="2"
                                                     Grid.Row="0"
-                                                    Style="{StaticResource MaterialDesignBody1TextBlock}"
-                                                    Text="{Binding PostTime.Value, Mode=OneWay}"
-                                                    />
+                                                    Style="{StaticResource MaterialDesignBody1TextBlock}">
+                                                    <Run Text="{Binding PostTime.Value, Mode=OneWay}" />
+                                                    <Run
+                                                        Foreground="{DynamicResource IdTextBrush}"
+                                                        Text="{Binding IdString.Value, Mode=OneWay}" />                                                </TextBlock>
                                                 <TextBlock
                                                     Grid.Column="4"
                                                     Grid.Row="0"
