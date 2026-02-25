@@ -176,7 +176,7 @@ class BindableSureyomiChanModel : INotifyPropertyChanged {
 	};
 
 	private static string FormatEmail(SureyomiChanModel model) => model.Email switch {
-		string v when !string.IsNullOrEmpty(v) => $"No.{v}",
+		string v when !string.IsNullOrEmpty(v) => $"[{v}]",
 		_ => "",
 	};
 
