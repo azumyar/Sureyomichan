@@ -6,7 +6,7 @@ export default defineConfig({
   title: "スレ詠みちゃん",
   description: "",
   head: [
-//    ["link", {rel: "icon", href: "/Sureyomichan/images/favicon.ico"}],
+    ["link", {rel: "icon", href: "/Sureyomichan/images/favicon.ico"}],
     ["meta", {property: "twitter:card", content: "summary"}],
     ["meta", {property: "twitter:site", content: "@HARUKei66494739"}],
     ["meta", {property: "twitter:description", content: "某所のスレッド読み上げツール"}],
@@ -21,6 +21,7 @@ export default defineConfig({
   ],
   themeConfig: {
     // https://vitepress.dev/reference/default-theme-config
+    logo: "/images/logo-mini.svg",
     nav: [
       { text: "ホーム", link: "/" },
       { text: "使い方", link: "/usage/" }
