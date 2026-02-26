@@ -10,6 +10,11 @@
     <UseWPF>true</UseWPF>
   </PropertyGroup>
 
+  <PropertyGroup>
+    <ApplicationIcon>App.ico</ApplicationIcon>
+    <AssemblyName>SureyomiChan</AssemblyName>
+  </PropertyGroup>
+
   <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
     <PublishDir>../../dist</PublishDir>
     <OutputType>WinExe</OutputType>
