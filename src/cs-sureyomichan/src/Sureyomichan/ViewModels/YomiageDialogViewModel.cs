@@ -201,8 +201,8 @@ internal class YomiageDialogViewModel : BindableBase, IDialogAware {
 
 
 	private bool StartYomiage(bool isLatest) {
-		Task<Models.NgResult> safeIsNgFromBody(Models.SureyomiChanModel it, Models.DifferenceHash? dhash)
-			=> this.param.Ng?.IsNgFromBody(it, dhash) switch {
+		Task<Models.NgResult> safeIsNgFromBody(int threadNo, Models.SureyomiChanModel model, Models.DifferenceHash? dhash)
+			=> this.param.Ng?.IsNgFromBody(threadNo, model, dhash) switch {
 				{ } v => v,
 				_ => Task.FromResult(Models.NgResult.Default),
 			};
@@ -273,7 +273,7 @@ internal class YomiageDialogViewModel : BindableBase, IDialogAware {
 						var isNg = false;
 						var body = it.ToSpeakText();
 						foreach(var it2 in await Task.WhenAll(
-							safeIsNgFromBody(it, dHash),
+							safeIsNgFromBody(x.ThreadNo, it, dHash),
 							safeIsNgFromImage(dHash),
 							delay(500))) {
 							isNg |= it2.IsNg;

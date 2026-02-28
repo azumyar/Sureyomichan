@@ -31,15 +31,12 @@ class TegakiSaveStore : ITegakiSaveStore {
 		}.ToString();
 	}
 
-	public List<Models.TegakiSaveResData> ToTegakiSaveModels(int resNo) {
+	public List<Models.TegakiSaveResData> ToTegakiSaveModels(int threadNo) {
 		lock(this.lockObj) {
-			foreach(var it in this.TegakiData.Values) {
-				if(it.Where(x => x.ResNo == $"resNo").Any()) {
-					return it.ToList();
-
-				}
-			}
-			return new();
+			return this.TegakiData.TryGetValue(threadNo, out var it) switch {
+				true => [.. it],
+				_ => []
+			};
 		}
 	}
 

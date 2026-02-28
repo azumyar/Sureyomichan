@@ -6,6 +6,7 @@ using System.Reactive.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
@@ -71,16 +72,16 @@ function __toBase64(s) {{
 }}
 
 function __runNgPlugins(base64) {{
-	const res = JSON.parse(__fromBase64(base64));
-	const tegaki = JSON.parse(chrome.webview.hostObjects.sync.TegakiSaveObject.GetStore(parseInt(res.resNo)));
-	res.__tegaki_res = tegaki.res;
+	const param = JSON.parse(__fromBase64(base64));
+	const tegaki = JSON.parse(chrome.webview.hostObjects.sync.TegakiSaveObject.GetStore(param.threadNo));
+	param.res.__tegaki_res = tegaki.res;
 	const pResult = runPlugins({{
 		point: 'read',
 		execName: 'beforeExecute',
 		from: 'tegakiSaveCtrl.read',
-		res: res,
+		res: param.res,
 	}});
-	return JSON.stringify(pResult);
+	return __toBase64(JSON.stringify(pResult));
 }}");
 		Initialized?.Invoke(this, EventArgs.Empty);
 	}
@@ -110,28 +111,28 @@ function __runNgPlugins(base64) {{
 		}
 	}
 
-	public async Task<Models.TegakiSavePluginResult?> RunPlugin(Models.SureyomiChanModel res, ulong? imageHash) {
+	public async Task<Models.TegakiSavePluginResult?> RunPlugin(int threadNo, Models.SureyomiChanModel res, ulong? imageHash) {
 		var task = await Utils.Util.AwaitObserver(
 			Observable.Return(res)
 				.ObserveOn(Reactive.Bindings.UIDispatcherScheduler.Default)
 				.Select(async x => {
-					var json = x.ToTegakiSaveModel(
-						isNg: false,
-						imageHash: imageHash,
-						replaceComment: x.Body)
-						.ToString(writeIndented: false);
+					var json = new RunPluginParams() {
+						ThreadNo = threadNo,
+						Res = x.ToTegakiSaveModel(
+							isNg: false,
+							imageHash: imageHash,
+							replaceComment: x.Body)
+					}.ToString(writeIndented: false);
 					var base64 = Convert.ToBase64String(Encoding.UTF8.GetBytes(json));
 					var r = await this.webView2.CoreWebView2.ExecuteScriptAsync($"__runNgPlugins('{base64}')");
 					if(r == "null") {
 						return null;
 					}
 
-					var s = Regex.Replace(r, @"\\(.)", m => {
-						return m.Groups[1].Value switch {
-							_ => m.Groups[1].Value,
-						};
-					});
-					return JsonSerializer.Deserialize<Models.TegakiSavePluginResult>(s.Substring(1, s.Length - 2));
+					var s = Encoding.UTF8.GetString(
+						Convert.FromBase64String(
+							FormatScriptResult(r)));
+					return JsonSerializer.Deserialize<Models.TegakiSavePluginResult>(s);
 				}), default);
 		if(task is { }) {
 			return await task;
@@ -160,16 +161,30 @@ function __runNgPlugins(base64) {{
 
 					return Encoding.UTF8.GetString(
 						Convert.FromBase64String(
-							r.Substring(1, r.Length - 2)));
+							FormatScriptResult(r)));
 				}), default);
 		if(task is { }) {
 			return await task;
 		} else {
 			return await Task.FromResult("");
 		}
-
 	}
+
+	private static string FormatScriptResult(string s)
+		=> new(s.AsSpan().Slice(1, s.Length - 2));
 }
+
+
+file class RunPluginParams : Models.JsonObject {
+	[JsonPropertyName("threadNo")]
+	[JsonInclude]
+	public required int ThreadNo { get; init; }
+
+	[JsonPropertyName("res")]
+	[JsonInclude]
+	public required Models.TegakiSaveResData Res { get; init; }
+}
+
 
 [ComVisible(true)]
 [Guid("326DF6C0-B080-4C84-99A7-14DBDF6062B3")]
