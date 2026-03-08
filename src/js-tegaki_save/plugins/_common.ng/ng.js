@@ -66,6 +66,18 @@ export function option(type, ex) {
 }
 
 /**
+ * 処理結果返り値作成
+ * @param {boolean} isStop (省略可能) 処理の中断判定…返した側で処理を中断すべきかどうかの判定値（true：処理を中断させる、false：処理続行）
+ * @param {boolean} isError (省略可能) エラーの有無 （true：エラー発生、エラーの種類によっては処理を続行しない 返した側で判断する）
+ * @param {string} message (省略可能) 中断やエラーのメッセージ
+ * @param {string} resultValue (省略可能) 呼び出し元に返したい値
+ * @returns {PluginResult}
+ */
+export function pluginResult(isStop=false, resultValue="", isError=false, message="") {
+  return {isStop, isError, message, resultValue};
+}
+
+/**
  * NG処理本体
  * @param {PluginParam} param 
  * @param {NgTemplate[]} ng
@@ -88,7 +100,7 @@ export function run(param, ng, resComment) {
   // message：中断やエラーのメッセージ
   // resultValue：呼び出し元に返したい値
   /** @type {PluginResult} */
-  const ret = {isStop : false, isError : false, message : "", resultValue : ""};
+  const ret = pluginResult();
   let prevValue = ret.resultValue;
   let comment = parseComment(param.res.com);
   if(comment === "") {

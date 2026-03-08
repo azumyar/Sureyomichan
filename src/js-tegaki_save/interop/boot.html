@@ -22,8 +22,16 @@ function pluginsJsLoad(plugins) {
   plugins.forEach(function(file) {
     // プラグインフォルダ内のplugin.jsでexportされた内容をimportで取得
     import(`../plugins/${file}/plugin.js`).then(function(modules) {
+      if(!modules.pluginList) {
+        return;
+      }
+
       // プラグインのポイント別にtegakiPlugins内に格納（実行並び順はあとで並び変える）
       for(let i = 0;i < modules.pluginList.length;i++) {
+        if(!modules.pluginList[i].Name) {
+          modules.pluginList[i].Name = file;
+        }
+
         // plugin.js内にある{point,sort,beforeExecute,afterExecute,execute}のような形式の値を該当pointのプラグイン内に追加する
         tegakiPlugins[modules.pluginList[i].point].push(modules.pluginList[i]);
       }
@@ -34,9 +42,18 @@ function pluginsJsLoad(plugins) {
   });
 }
 
-function loadModule(modules) {
+function loadModule(modules, file) {
+  if(!modules.pluginList) {
+    return;
+  }
+
   // プラグインのポイント別にtegakiPlugins内に格納（実行並び順はあとで並び変える）
   for(let i = 0;i < modules.pluginList.length;i++) {
+    // 名前がない場合名前を付ける
+    if(!modules.pluginList[i].name) {
+      modules.pluginList[i].name = file;
+    }
+
     // plugin.js内にある{point,sort,beforeExecute,afterExecute,execute}のような形式の値を該当pointのプラグイン内に追加する
     tegakiPlugins[modules.pluginList[i].point].push(modules.pluginList[i]);
   }

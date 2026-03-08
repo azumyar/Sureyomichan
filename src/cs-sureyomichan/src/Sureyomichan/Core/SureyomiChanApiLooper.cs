@@ -11,6 +11,7 @@ partial class SureyomiChanApiLooper : IDisposable {
 		IObservable<Models.SureyomiChanResponse> GetThread(int? latestResNo);
 	}
 
+	private readonly System.Threading.CountdownEvent condition = new(1);
 	private readonly UiMessageDispatcher uiMsgDispatcher;
 	private readonly IConfigProxy config;
 	private readonly CancellationTokenSource cancel;
@@ -52,21 +53,37 @@ partial class SureyomiChanApiLooper : IDisposable {
 					Utils.Logger.Instance.Info($"API呼び出しを開始 => worker={this.worker.GetType().Name}, latestNo={latestNo}, skip={skip}");
 					uiMsgDispatcher.DispatchBeginGetApi();
 
+					this.condition.Reset();
 					worker.GetThread(latestNo)
 						.Subscribe(async x => {
-							Utils.Logger.Instance.Info($"API呼び出しが成功");
-							uiMsgDispatcher.DispatchEndGetApi(true, x);
+							try {
+								Utils.Logger.Instance.Info($"API呼び出しが成功");
+								uiMsgDispatcher.DispatchEndGetApi(true, x);
 
-							if (x.NewReplies.LastOrDefault() is { } it) {
-								latestNo = it.No;
+								if(x.NewReplies.LastOrDefault() is { } it) {
+									latestNo = it.No;
+								}
+
+								await callBack(x, skip);
+								skip = false;
 							}
-
-							await callBack(x, skip);
-							skip = false;
+							finally {
+								this.condition.Signal();
+							}
 						}, ex => {
-							uiMsgDispatcher.DispatchEndGetApi(false, null);
-							Utils.Logger.Instance.Error(ex);
+							try {
+								uiMsgDispatcher.DispatchEndGetApi(false, null);
+								Utils.Logger.Instance.Error(ex);
+							}
+							finally {
+								this.condition.Signal();
+							}
+						}, () => {
+							// Subscribe()でawaitを使用しているのでcallBack()が終わった後で
+							// ここに入る保障がない
+							//this.condition.Signal();
 						});
+					this.condition.Wait();
 					await Task.Delay(5000);
 				}
 			}, this.cancel.Token);

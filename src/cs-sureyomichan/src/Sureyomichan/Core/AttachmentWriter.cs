@@ -18,6 +18,7 @@ using System.Windows.Threading;
 namespace Haru.Kei.SureyomiChan.Core; 
 class AttachmentWriter {
 	private System.Reactive.Concurrency.EventLoopScheduler ConvertScheduler { get; } = new();
+	private readonly object lockObj = new();
 	private readonly Helpers.SerialRunner downloadRunner;
 
 	private readonly string saveFileNamePng = "tegaki.png";
@@ -67,15 +68,18 @@ class AttachmentWriter {
 
 		};
 	}
+
 	public async Task UpdateThreadNo(Models.SureyomiChanResponse response) {
-		if(this.currentThreadId.ContainsKey(response.ThreadNoTxt)) {
-			if(this.currentThreadId[response.ThreadNoTxt] == response.ThreadNo) {
-				return;
+		lock(this.lockObj) {
+			if(this.currentThreadId.ContainsKey(response.ThreadNoTxt)) {
+				if(this.currentThreadId[response.ThreadNoTxt] == response.ThreadNo) {
+					return;
+				} else {
+					this.currentThreadId[response.ThreadNoTxt] = response.ThreadNo;
+				}
 			} else {
-				this.currentThreadId[response.ThreadNoTxt] = response.ThreadNo;
+				this.currentThreadId.Add(response.ThreadNoTxt, response.ThreadNo);
 			}
-		} else {
-			this.currentThreadId.Add(response.ThreadNoTxt, response.ThreadNo);
 		}
 
 		if(this.config.Get().SaveThreadNoEnabled) {
@@ -306,24 +310,26 @@ class AttachmentWriter {
 	private void ConvertForObs(string saveRoot, string fileName, byte[] fileBytes) {
 		Observable.Create<int>(o => {
 			try {
-				Utils.Logger.Instance.Info($"OBS用変換を開始します => {fileName}");
+				Utils.Logger.Instance.Info($"必要な場合OBS用変換を実行します => {fileName}");
 				var task = Path.GetExtension(fileName).ToLower() switch {
 					".png" => Utils.ImageUtil.ConvertApng2Gif,
 					".webp" => Utils.ImageUtil.ConvertAwebp2Gif,
 					_ => default(Func<byte[], string, string, bool>?)
 				};
 				if(task is { }) {
-					task(
+					var isExec = task(
 						fileBytes,
 						saveRoot,
 						$"{Path.GetFileNameWithoutExtension(fileName)}.conv");
+					if(isExec) {
+						Utils.Logger.Instance.Info($"OBS用変換を実行しました => {fileName}");
+					}
 				}
 			}
 			catch(Exception ex) {
 				Utils.Logger.Instance.Error(ex);
 			}
 			finally {
-				Utils.Logger.Instance.Info($"OBS用変換が終了しました => {fileName}");
 				o.OnCompleted();
 			}
 			return System.Reactive.Disposables.Disposable.Empty;

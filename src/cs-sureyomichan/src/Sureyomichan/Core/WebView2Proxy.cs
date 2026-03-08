@@ -1,4 +1,3 @@
-using Haru.Kei.SureyomiChan.Utils;
 using Microsoft.Web.WebView2.Core;
 using System;
 using System.Collections.Generic;
@@ -7,6 +6,7 @@ using System.Reactive.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
@@ -19,7 +19,7 @@ class WebView2Proxy {
 	private readonly string localRoot;
 	private readonly bool isOpenWebViewDevTool;
 
-	public event EventHandler? CoreInitialized;
+	public event EventHandler? Initialized;
 
 	// WebView2Proxyの設定更新は再起動が必要
 	public WebView2Proxy(
@@ -49,27 +49,41 @@ class WebView2Proxy {
 			var plugin_js = it.AsSpan().Slice(localRoot.Length).ToString();
 			Utils.Logger.Instance.Info($"互換JavaScriptプラグインの読み込み => {plugin_js}");
 			await this.webView2.CoreWebView2.ExecuteScriptAsync(@$"
-import('{plugin_js.Replace('\\', '/')}')
-  .then(m => {{
-    loadModule(m);
-    //console.log(tegakiPlugins);
-  }})
+{{
+	let file = '{plugin_js.Replace('\\', '/')}';
+	import(file)
+	  .then(m => {{
+		loadModule(m, file);
+	  }})
+}}
 ");
 		}
 
 		await this.webView2.CoreWebView2.ExecuteScriptAsync(@$"
-function __runNgPlugins(json) {{
-	const res = JSON.parse(json);
-	const tegaki = JSON.parse(chrome.webview.hostObjects.sync.TegakiSaveObject.GetStore(parseInt(res.resNo)));
-	res.__tegaki_res = tegaki.res;
+function __fromBase64(b) {{
+	return  new TextDecoder()
+		.decode(Uint8Array.fromBase64(b));
+}}
+
+function __toBase64(s) {{
+	return new TextEncoder()
+		.encode(s)
+		.toBase64();
+}}
+
+function __runNgPlugins(base64) {{
+	const param = JSON.parse(__fromBase64(base64));
+	const tegaki = JSON.parse(chrome.webview.hostObjects.sync.TegakiSaveObject.GetStore(param.threadNo));
+	param.res.__tegaki_res = tegaki.res;
 	const pResult = runPlugins({{
 		point: 'read',
 		execName: 'beforeExecute',
 		from: 'tegakiSaveCtrl.read',
-		res: res,
+		res: param.res,
 	}});
-	return JSON.stringify(pResult);
+	return __toBase64(JSON.stringify(pResult));
 }}");
+		Initialized?.Invoke(this, EventArgs.Empty);
 	}
 
 	private async void OnWebViewInitialization(object? sender, CoreWebView2InitializationCompletedEventArgs e) {
@@ -91,35 +105,34 @@ function __runNgPlugins(json) {{
 				this.webView2.CoreWebView2.AddHostObjectToScript(
 					"TegakiSaveObject",
 					new HostObject(tegakiSaveStore));
-
-				CoreInitialized?.Invoke(this, EventArgs.Empty);
 			} else {
-				Logger.Instance.Error($"tegaki_saveプラグイン設定が不正です。連携を停止します。 => {this.localRoot}");
+				Utils.Logger.Instance.Error($"tegaki_saveプラグイン設定が不正です。連携を停止します。 => {this.localRoot}");
 			}
 		}
 	}
 
-	public async Task<Models.TegakiSavePluginResult?> RunPlugin(Models.SureyomiChanModel res, ulong? imageHash) {
+	public async Task<Models.TegakiSavePluginResult?> RunPlugin(int threadNo, Models.SureyomiChanModel res, ulong? imageHash) {
 		var task = await Utils.Util.AwaitObserver(
 			Observable.Return(res)
 				.ObserveOn(Reactive.Bindings.UIDispatcherScheduler.Default)
 				.Select(async x => {
-					var json = x.ToTegakiSaveModel(
-						isNg: false,
-						imageHash: imageHash,
-						replaceComment: x.Body.Replace('\"', '\''))
-						.ToString(writeIndented: false);
-					var r = await this.webView2.CoreWebView2.ExecuteScriptAsync($"__runNgPlugins('{json}')");
+					var json = new RunPluginParams() {
+						ThreadNo = threadNo,
+						Res = x.ToTegakiSaveModel(
+							isNg: false,
+							imageHash: imageHash,
+							replaceComment: x.Body)
+					}.ToString(writeIndented: false);
+					var base64 = Convert.ToBase64String(Encoding.UTF8.GetBytes(json));
+					var r = await this.webView2.CoreWebView2.ExecuteScriptAsync($"__runNgPlugins('{base64}')");
 					if(r == "null") {
 						return null;
 					}
 
-					var s = Regex.Replace(r, @"\\(.)", m => {
-						return m.Groups[1].Value switch {
-							_ => m.Groups[1].Value,
-						};
-					});
-					return JsonSerializer.Deserialize<Models.TegakiSavePluginResult>(s.Substring(1, s.Length - 2));
+					var s = Encoding.UTF8.GetString(
+						Convert.FromBase64String(
+							FormatScriptResult(r)));
+					return JsonSerializer.Deserialize<Models.TegakiSavePluginResult>(s);
 				}), default);
 		if(task is { }) {
 			return await task;
@@ -138,33 +151,40 @@ function __runNgPlugins(json) {{
     const xmlHttpApi = new XMLHttpRequest();    
     xmlHttpApi.open('GET', '{url}', false);
     xmlHttpApi.send(null);
-	xmlHttpApi.responseText;
+
+	__toBase64(xmlHttpApi.responseText);
 }}
 ");
 					if(r == "null") {
 						return "";
 					}
 
-					var s = Regex.Replace(r, @"\\u(....)", m => {
-						int charCode16 = Convert.ToInt32(m.Groups[1].Value, 16);
-						char c = Convert.ToChar(charCode16);
-						return c.ToString();
-					});
-					s = Regex.Replace(s, @"\\(.)", m => {
-						return m.Groups[1].Value switch {
-							_ => m.Groups[1].Value,
-						};
-					});
-					return s.Substring(1, s.Length - 2);
+					return Encoding.UTF8.GetString(
+						Convert.FromBase64String(
+							FormatScriptResult(r)));
 				}), default);
 		if(task is { }) {
 			return await task;
 		} else {
 			return await Task.FromResult("");
 		}
-
 	}
+
+	private static string FormatScriptResult(string s)
+		=> new(s.AsSpan().Slice(1, s.Length - 2));
 }
+
+
+file class RunPluginParams : Models.JsonObject {
+	[JsonPropertyName("threadNo")]
+	[JsonInclude]
+	public required int ThreadNo { get; init; }
+
+	[JsonPropertyName("res")]
+	[JsonInclude]
+	public required Models.TegakiSaveResData Res { get; init; }
+}
+
 
 [ComVisible(true)]
 [Guid("326DF6C0-B080-4C84-99A7-14DBDF6062B3")]
