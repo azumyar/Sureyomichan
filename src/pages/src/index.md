@@ -18,11 +18,11 @@ hero:
         link: /usage/
 
 features:
-  - title: 笞刳軏{機能
+  - title: ⚙基本機能
     details: 棒読みちゃんとの連携でスレッドの読み上げ。ファイルの自動取得。
-  - title: 捗動作環境
+  - title: 💻動作環境
     details: 動作には.NET Desktop Runtime v10の事前インストールが必要です。
-  - title: 答その他
+  - title: 📚その他
     details: 今後良い感じに更新されるかもしれません。
 ---
 
