@@ -6,6 +6,9 @@ hero:
   name: "スレ詠みちゃん"
   text: "Sureyomichan"
   tagline: 某所のスレッドの読み上げを棒読みちゃんと連携して行います。
+  image:
+    src: /images/logo.png
+    alt: logo
   actions:
       - theme: brand
         text: ダウンロード
@@ -15,11 +18,11 @@ hero:
         link: /usage/
 
 features:
-  - title: ⚙基本機能
+  - title: 笞刳軏{機能
     details: 棒読みちゃんとの連携でスレッドの読み上げ。ファイルの自動取得。
-  - title: 💻動作環境
+  - title: 捗動作環境
     details: 動作には.NET Desktop Runtime v10の事前インストールが必要です。
-  - title: 📚その他
+  - title: 答その他
     details: 今後良い感じに更新されるかもしれません。
 ---
 
