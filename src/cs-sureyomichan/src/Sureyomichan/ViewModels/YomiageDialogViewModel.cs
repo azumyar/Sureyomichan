@@ -288,7 +288,7 @@ internal class YomiageDialogViewModel : BindableBase, IDialogAware {
 									body.Replace("\r", "")
 										.Split("\n")
 										.Select(x => x switch {
-											{ } v when v.FirstOrDefault() == '>' => $"{this.param.Config.Get().AppendSpecialTag}{x.Substring(1)}",
+											{ } v when v.FirstOrDefault() == '>' => $"{this.param.Config.Get().AppendSpecialTag}{x}",
 											{ } v => v,
 											_ => "",
 										}))
