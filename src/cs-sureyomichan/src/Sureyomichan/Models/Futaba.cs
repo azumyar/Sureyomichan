@@ -43,7 +43,7 @@ class FutabaResponse : JsonObject {
 
 	[JsonPropertyName("sd")]
 	[JsonInclude]
-	public object? Soudane { get; private set; }
+	public object? __Soudane { get; private set; }
 	/*
 	 * @property {Array | Object.<string, number>}  sd
 	 */
@@ -53,6 +53,23 @@ class FutabaResponse : JsonObject {
 		=> this.__Res.Select(x => new __FutabaResData(x.Value, x.Key))
 			.OrderBy(x => x.ResNoInt)
 			.ToArray();
+
+	[JsonIgnore]
+	public IEnumerable<(int ResNo, int Value)> Soudane {
+		get {
+			var r = new List<(int, int)>();
+			if(this.__Soudane is System.Text.Json.JsonElement el && (el.ValueKind == JsonValueKind.Object)) {
+				foreach(var v in el.EnumerateObject()) {
+					var r1 = int.TryParse(v.Name, out var v1);
+					var r2 = int.TryParse(v.Value.ToString(), out var v2);
+					if(r1 && r2) {
+						r.Add(new(v1, v2));
+					}
+				}
+			}
+			return r.AsReadOnly();
+		}
+	}
 }
 
 class FutabaResData : JsonObject, IAttachmentData {

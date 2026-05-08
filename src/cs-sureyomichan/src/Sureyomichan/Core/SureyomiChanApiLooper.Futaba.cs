@@ -28,6 +28,10 @@ partial class SureyomiChanApiLooper {
 					ThreadNoTxt = threadNoTxt,
 					IsAlive = x.NowDateTime < x.DieDateTime,
 					IsMaxRes = !string.IsNullOrEmpty(x.MaxRes),
+					Soudane = x.Soudane.Where(x => x.ResNo == this.threadNo) switch {
+						{ } v when v.Count() != 0 => v.FirstOrDefault().Value,
+						_ => 0
+					},
 					CurrentTime = x.NowDateTime,
 					DieTime = x.DieDateTime,
 					NewReplies = x.Res.Select(x => x.ToSureyomiChanModel(this.threadNo, new FutabaInteraction(this.urlString, x, this.api, this.config))).ToArray(),
@@ -39,6 +43,6 @@ partial class SureyomiChanApiLooper {
 
 file class FutabaFeature : ISureyomiChanFeature {
 	public bool IsSupportThreadOld => true;
-
 	public bool IsSupportThreadDie => true;
+	public bool IsSupportInspectSoudane => false;
 }

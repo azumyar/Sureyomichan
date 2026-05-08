@@ -11,37 +11,13 @@ using NAudio.Wave;
 namespace Haru.Kei.SureyomiChan.Core;
 
 class Yomiage(BouyomiChan bouyomi, IConfigProxy config) {
-	private bool stateStart = false;
-	private bool stateOld = false;
-	private bool stateDie = false;
-	private bool stateMaxRes = false;
+	private readonly HashSet<string> yomiageState = new();
 
-	public void SpeakStarted() {
-		if (!stateStart) {
-			this.DoYomiage(config.Get().YomiageStarted);
+	public void SpeakFromConfig(string name, Models.YomiageConfig config) {
+		if(!this.yomiageState.TryGetValue(name, out var _)) {
+			this.yomiageState.Add(name);
+			this.DoYomiage(config);
 		}
-		stateStart = true;
-	}
-
-	public void SpeakOld() {
-		if (!stateOld) {
-			this.DoYomiage(config.Get().YomiageOld);
-		}
-		stateOld = true;
-	}
-
-	public void SpeakDead() {
-		if (!stateDie) {
-			this.DoYomiage(config.Get().YomiageDie);
-		}
-		stateDie = true;
-	}
-
-	public void SpeakMaxRes() {
-		if(!stateMaxRes) {
-			this.EnqueueSpeak(SureyomiChanEnviroment.YomiageMaxResText);
-		}
-		stateMaxRes = true;
 	}
 
 	public void SaveImage() {

@@ -41,9 +41,9 @@ class TegakiSaveStore : ITegakiSaveStore {
 	}
 
 
-	public void Add(int threadNo, Models.SureyomiChanModel m, bool isNg, ulong? imageHash) {
+	public void Add(int threadNo, Models.SureyomiChanModel m, bool isNg, IEnumerable<Models.AttachmentObject> attachments) {
 		lock(this.lockObj) {
-			var model = m.ToTegakiSaveModel(isNg: isNg, imageHash: imageHash);
+			var model = m.ToTegakiSaveModel(isNg: isNg, attachments: attachments);
 			if(this.TegakiData.TryGetValue(threadNo, out var lt)) {
 				lt.Add(model);
 			} else {

@@ -103,6 +103,9 @@ static class ModelsExtensions {
 		}
 
 
+		public Models.TegakiSaveResData ToTegakiSaveModel(bool isNg, IEnumerable<Models.AttachmentObject> attachments, string? replaceComment = null)
+			=> source.ToTegakiSaveModel(isNg, attachments.FirstOrDefault()?.Hash?.Value, replaceComment);
+
 		public Models.TegakiSaveResData ToTegakiSaveModel(bool isNg, ulong? imageHash, string? replaceComment=null) {
 			static string @string(string? s) => s ?? "";
 
@@ -125,13 +128,13 @@ static class ModelsExtensions {
 				},
 				SureyomiTerms = new(source.Token),
 
-				FileSource = @string(source.ImageSource),
-				FileThumb = @string(source.ThumbnailSource),
-				FileSize = source.ImageFileName switch {
+				FileSource = @string(source.Images.FirstOrDefault()?.ImageSource),
+				FileThumb = @string(source.Images.FirstOrDefault()?.ThumbnailSource),
+				FileSize = source.Images.FirstOrDefault() switch {
 					{ } => 1,
 					_ => 0,
 				},
-				FileExtension = @string(System.IO.Path.GetExtension(source.ImageFileName))
+				FileExtension = @string(System.IO.Path.GetExtension(source.Images.FirstOrDefault()?.ImageFileName))
 			};
 
 			return r;
@@ -175,15 +178,17 @@ static class ModelsExtensions {
 			},
 			deleteType: source.DeleteType,
 
-			imageFileName: source.FileSource switch {
-				string v when !string.IsNullOrEmpty(v) => Path.GetFileName(v),
-				_ => null,
-			},
-			imageSource: stringnull(source.FileSource),
-			thumbnailSource: stringnull(source.FileThumb),
+			images: source.ToImages(),
 
 			token: Utils.Util.Tokenize(source.FormatBody()),
 			interaction: interaction);
+
+		private IEnumerable<Models.SureyomiChanImage> ToImages() => source.FileSource switch {
+			string v when !string.IsNullOrEmpty(v) => [
+				new(Path.GetFileName(v), source.FileSource, source.FileThumb)
+			],
+			_ => []
+		};
 	}
 
 	extension(Models.NijiuraChanThreadV1 source) {
@@ -207,15 +212,19 @@ static class ModelsExtensions {
 			},
 			deleteType: Models.SureyomiChanDeleteType.None,
 
-			imageFileName: source.Image switch {
-				string v when !string.IsNullOrEmpty(v) => Path.GetFileName(v),
-				_ => null,
-			},
-			imageSource: source.Image,
-			thumbnailSource: source.Thumb,
+			images: source.ToImages(),
 
 			token: Utils.Util.Tokenize(source.FormatBody()),
 			interaction: interaction);
+		private IEnumerable<Models.SureyomiChanImage> ToImages() => source.Image switch {
+			string v when !string.IsNullOrEmpty(v) => [
+				new(Path.GetFileName(v), source.Image, source.Thumb switch {
+					{ } vv => vv,
+					_ => "",
+				})
+			],
+			_ => []
+		};
 	}
 
 	extension(Models.NijiuraChanThreadInternal source) {
@@ -239,15 +248,20 @@ static class ModelsExtensions {
 			},
 			deleteType: Models.SureyomiChanDeleteType.None,
 
-			imageFileName: source.Attachment?.Path switch {
-				string v when !string.IsNullOrEmpty(v) => Path.GetFileName(v),
-				_ => null,
-			},
-			imageSource: source.Attachment?.Path,
-			thumbnailSource: source.Attachment?.Thumbnail,
+			images: source.ToImages(),
 
 			token: Utils.Util.Tokenize(source.FormatBody()),
 			interaction: interaction);
+
+		private IEnumerable<Models.SureyomiChanImage> ToImages() => source.Attachment switch {
+			{ } => source.Attachment.Path switch {
+				string v when !string.IsNullOrEmpty(v) => [
+						new(Path.GetFileName(v), source.Attachment.Path, source.Attachment.Thumbnail),
+					],
+				_ => []
+			},
+			_ => []
+		};
 	}
 
 	extension(Models.SureyomiChanDeleteType source) {

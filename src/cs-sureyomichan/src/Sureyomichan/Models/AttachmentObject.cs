@@ -11,5 +11,6 @@ class AttachmentObject {
 	public required string ImageName { get; init; }
 	public required byte[]? OriginalFileBytes { get; init; }
 	public required byte[]? ImageFileBytes { get; init; }
+	public required DifferenceHash? Hash { get; init; }
 }
 
