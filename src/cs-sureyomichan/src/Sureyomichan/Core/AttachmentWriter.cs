@@ -113,7 +113,13 @@ class AttachmentWriter {
 		}
 	}
 
-	public async Task Save(Models.SureyomiChanModel model, Models.AttachmentObject attachment) {
+	public async Task Save(Models.SureyomiChanModel model, IEnumerable<Models.AttachmentObject> attachments) {
+		foreach(var it in attachments) {
+			await this.Save(model, it);
+		}
+	}
+
+	private async Task Save(Models.SureyomiChanModel model, Models.AttachmentObject attachment) {
 		this.downloadToken = new();
 		var orig = attachment.OriginalFileBytes;
 		var image = attachment.ImageFileBytes;

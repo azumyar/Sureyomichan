@@ -46,6 +46,7 @@ partial class SureyomiChanApiLooper {
 						ThreadNoTxt = threadNoTxt,
 						IsAlive = true,
 						IsMaxRes = SureyomiChanEnviroment.NijiuraChanMaxRes <= (replies.LastOrDefault()?.Number ?? 0),
+						Soudane = 0,
 						CurrentTime = nowTime,
 						DieTime = nowTime.AddHours(1),
 						NewReplies = replies.Select(x => x.ToSureyomiChanModel(this.threadNo, new NijiuraChanInteraction(this.urlString, x, null, this.config))).ToArray() ?? new SureyomiChanModel[0],
@@ -82,29 +83,36 @@ partial class SureyomiChanApiLooper {
 			return Observable.Return(url)
 				.ObserveOn(System.Reactive.Concurrency.ThreadPoolScheduler.Instance)
 				.Select(x => {
-					var nowTime = DateTime.Now;
-					var task = this.webView.__RequestApi(url);
-					task.Wait();
-					var json = task.Result;
-					var o = JsonSerializer.Deserialize<Models.NijiuraChanResponse<Models.NijiuraChanThreadInternalData>>(json);
+					var json = "";
+					try {
+						var nowTime = DateTime.Now;
+						var task = this.webView.__RequestApi(url);
+						task.Wait();
+						json = task.Result;
+						var o = JsonSerializer.Deserialize<Models.NijiuraChanResponse<Models.NijiuraChanThreadInternalData>>(json);
 
-					IEnumerable<Models.NijiuraChanPostInternal> replies;
-					if(latestResNo is { } lno) {
-						replies = o?.Data?.Posts.Where(x => lno < x.Id).ToArray() ?? Array.Empty<Models.NijiuraChanPostInternal>();
-					} else {
-						replies = o?.Data?.Posts.Skip(1).ToArray() ?? Array.Empty<Models.NijiuraChanPostInternal>();
+						IEnumerable<Models.NijiuraChanPostInternal> replies;
+						if(latestResNo is { } lno) {
+							replies = o?.Data?.Posts.Where(x => lno < x.Id).ToArray() ?? Array.Empty<Models.NijiuraChanPostInternal>();
+						} else {
+							replies = o?.Data?.Posts.Skip(1).ToArray() ?? Array.Empty<Models.NijiuraChanPostInternal>();
+						}
+
+						return new Models.SureyomiChanResponse() {
+							ThreadNo = threadNo,
+							ThreadNoTxt = threadNoTxt,
+							IsAlive = !o?.Data?.Thread.IsArchived ?? true,
+							IsMaxRes = SureyomiChanEnviroment.NijiuraChanMaxRes <= (replies.LastOrDefault()?.NumberInThread ?? 0),
+							Soudane = o?.Data?.Thread.SoudaneCount ?? 0,
+							CurrentTime = nowTime,
+							DieTime = o?.Data?.Thread.ExpiresAtDateTime ?? nowTime.AddHours(1),
+							NewReplies = replies.Select(x => x.ToSureyomiChanModel(this.threadNo, new NijiuraChanInternalInteraction(this.urlString, x, null, this.config))).ToArray(),
+							SupportFeature = new NijiuraChaninternalFeature(),
+						};
 					}
-
-					return new Models.SureyomiChanResponse() {
-						ThreadNo = threadNo,
-						ThreadNoTxt = threadNoTxt,
-						IsAlive = !o?.Data?.Thread.IsArchived ?? true,
-						IsMaxRes = SureyomiChanEnviroment.NijiuraChanMaxRes <= (replies.LastOrDefault()?.NumberInThread ?? 0),
-						CurrentTime = nowTime,
-						DieTime = o?.Data?.Thread.ExpiresAtDateTime ?? nowTime.AddHours(1),
-						NewReplies = replies.Select(x => x.ToSureyomiChanModel(this.threadNo, new NijiuraChanInternalInteraction(this.urlString, x, null, this.config))).ToArray(),
-						SupportFeature = new NijiuraChaninternalFeature(),
-					};
+					catch(JsonException _) {
+						throw new Exceptions.ApiInvalidJsonException(json);
+					}
 				});
 		}
 	}
@@ -112,12 +120,12 @@ partial class SureyomiChanApiLooper {
 
 file class NijiuraChanFeature : ISureyomiChanFeature {
 	public bool IsSupportThreadOld => false;
-
 	public bool IsSupportThreadDie => false;
+	public bool IsSupportInspectSoudane => false;
 }
 
 file class NijiuraChaninternalFeature : ISureyomiChanFeature {
 	public bool IsSupportThreadOld => true;
-
 	public bool IsSupportThreadDie => true;
+	public bool IsSupportInspectSoudane => true;
 }

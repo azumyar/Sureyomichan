@@ -80,11 +80,11 @@ class BindableSureyomiChanModel : INotifyPropertyChanged {
 
 	public BindableSureyomiChanModel(
 		SureyomiChanModel model,
-		(bool IsSucessed, AttachmentObject? Attachment)? attachment,
-		ulong? dHash,
+		IEnumerable<AttachmentObject> attachments,
 		bool isNg
 		) {
 
+		AttachmentObject? attachment = attachments.FirstOrDefault();
 		this.ResIndex = new ReactivePropertySlim<int>(initialValue: model.ResIndex);
 		this.No = new ReactivePropertySlim<string>(initialValue: FormatNo(model));
 		this.PostTime = new ReactivePropertySlim<string>(initialValue: model.FormatDateTime());
@@ -93,19 +93,19 @@ class BindableSureyomiChanModel : INotifyPropertyChanged {
 		this.Body = new ReactivePropertySlim<string>(initialValue: FormatBody(model));
 		this.Id = new ReactivePropertySlim<string?>(initialValue: model.Id);
 		this.ImageName = new ReactivePropertySlim<string?>(initialValue: attachment switch {
-			{ } => model.ImageFileName,
+			{ } v => v.FileName,
 			_ => "",
 		});
 		this.ImageErrorVisibility = new ReactivePropertySlim<Visibility>(initialValue: attachment switch {
-			{ } v => v.IsSucessed switch {
-				true => Visibility.Collapsed,
+			{ } v => v.ImageFileBytes switch {
+				{ } => Visibility.Collapsed,
 				_ => Visibility.Visible,
 			},
 			_ => Visibility.Collapsed,
 		});
-		this.hasImage = !isNg && attachment?.Attachment?.ImageFileBytes != null;
-		this.imageKey = attachment?.Attachment switch {
-			{ } v when !string.IsNullOrEmpty(v.ImageName) => v.ImageName,
+		this.hasImage = !isNg && attachment?.ImageFileBytes != null;
+		this.imageKey = attachment switch {
+			{ } v when v.ImageFileBytes is { } && !string.IsNullOrEmpty(v.ImageName) => v.ImageName,
 			_ => ""
 		};
 		this.IsNg = new(initialValue: isNg);

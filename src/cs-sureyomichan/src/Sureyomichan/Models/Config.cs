@@ -188,6 +188,13 @@ class Config : ConfigObject {
 		}
 	}
 
+	[JsonIgnore]
+	public YomiageConfig YomiageMaxRes => new() {
+		Method = YomiageConfig.YomiageMethodText,
+		File = "",
+		Text = SureyomiChanEnviroment.YomiageMaxResText,
+	};
+
 	public Config() : base(CurrentVersion) { }
 }
 

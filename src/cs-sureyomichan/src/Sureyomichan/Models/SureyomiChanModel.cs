@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
 using System.IO;
+using System.Linq;
 using System.Reactive.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -17,6 +18,7 @@ class SureyomiChanResponse {
 	public required bool IsMaxRes { get; init; }
 	public required DateTime CurrentTime { get; init; }
 	public required DateTime DieTime { get; init; }
+	public required int Soudane { get; init; }
 	public required IEnumerable<SureyomiChanModel> NewReplies { get; init; }
 	public required ISureyomiChanFeature SupportFeature { get; init; }
 }
@@ -31,9 +33,7 @@ class SureyomiChanModel(
 	SureyomiChanDeleteType deleteType,
 
 	// 画像関係いれる
-	string? imageFileName,
-	string? imageSource,
-	string? thumbnailSource,
+	IEnumerable<SureyomiChanImage> images,
 
 	string? id,
 	IEnumerable<Models.Token> token,
@@ -50,17 +50,33 @@ class SureyomiChanModel(
 
 	public SureyomiChanDeleteType DeleteType { get; } = deleteType;
 
-	public string? ImageFileName { get; } = imageFileName;
-	public string? ImageSource{ get; } = imageSource;
-	public string? ThumbnailSource { get; } = thumbnailSource;
+	public IEnumerable<SureyomiChanImage> Images { get; } = [..images];
+	[Obsolete]
+	public string? ImageFileName { get; } = images.FirstOrDefault()?.ImageFileName;
+	[Obsolete]
+	public string? ImageSource{ get; } = images.FirstOrDefault()?.ImageSource;
+	[Obsolete]
+	public string? ThumbnailSource { get; } = images.FirstOrDefault()?.ThumbnailSource;
 
 	public IEnumerable<Models.Token> Token { get; } = token;
 	public ISureyomiChanInteraction Interaction { get; } = interaction;
 }
 
+class SureyomiChanImage(
+	string imageFileName,
+	string imageSource,
+	string thumbnailSource
+	) {
+
+	public string ImageFileName { get; } = imageFileName;
+	public string ImageSource { get; } = imageSource;
+	public string ThumbnailSource { get; } = thumbnailSource;
+}
+
 interface ISureyomiChanFeature {
 	public bool IsSupportThreadOld { get; }
 	public bool IsSupportThreadDie { get; }
+	public bool IsSupportInspectSoudane { get; }
 }
 
 interface ISureyomiChanInteraction {
@@ -71,7 +87,7 @@ interface ISureyomiChanInteraction {
 	Task<bool> SendDelAction();
 	Task<bool> DeleteResAction();
 
-	Task<AttachmentObject> DownloadImage();
+	Task<IEnumerable<AttachmentObject>> DownloadImages();
 }
 
 enum SureyomiChanDeleteType {
