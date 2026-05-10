@@ -29,6 +29,7 @@ class BindableSureyomiChanModel : INotifyPropertyChanged {
 	public IReadOnlyReactiveProperty<bool> IsId { get; }
 	public IReadOnlyReactiveProperty<string> IdString { get; }
 
+	public IReadOnlyReactiveProperty<Visibility> ImageVisibility { get; }
 	public IReadOnlyReactiveProperty<Visibility> ImageErrorVisibility { get; }
 	public IReadOnlyReactiveProperty<string?> ImageName { get; }
 
@@ -96,6 +97,11 @@ class BindableSureyomiChanModel : INotifyPropertyChanged {
 			{ } v => v.FileName,
 			_ => "",
 		});
+		this.hasImage = !isNg && attachment?.ImageFileBytes != null;
+		this.ImageVisibility = new ReactivePropertySlim<Visibility>(initialValue: this.hasImage switch {
+			true=> Visibility.Visible,
+			_ => Visibility.Collapsed,
+		});
 		this.ImageErrorVisibility = new ReactivePropertySlim<Visibility>(initialValue: attachment switch {
 			{ } v => v.ImageFileBytes switch {
 				{ } => Visibility.Collapsed,
@@ -103,7 +109,6 @@ class BindableSureyomiChanModel : INotifyPropertyChanged {
 			},
 			_ => Visibility.Collapsed,
 		});
-		this.hasImage = !isNg && attachment?.ImageFileBytes != null;
 		this.imageKey = attachment switch {
 			{ } v when v.ImageFileBytes is { } && !string.IsNullOrEmpty(v.ImageName) => v.ImageName,
 			_ => ""
