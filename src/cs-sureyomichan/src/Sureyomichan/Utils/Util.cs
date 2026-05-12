@@ -175,7 +175,7 @@ static class Util {
 				var p = uri.LocalPath.Split("/");
 				if(p.Length == 3) {
 					var board = SureyomiChanEnviroment.SupportBoards__.Select<SureyomiChanBoardId, SureyomiChanBoardId?>(
-						x => (SureyomiChanEnviroment.GetStaticString(x, SureyomiChanBoard__.Command) == p[1]) switch {
+						x => (SureyomiChanEnviroment.GetStaticString(x, SureyomiChanBoardItem.URiCommand) == p[1]) switch {
 							true => x,
 							false => null
 						}).FirstOrDefault(x => x != null);

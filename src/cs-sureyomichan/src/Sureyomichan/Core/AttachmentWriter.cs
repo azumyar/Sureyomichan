@@ -69,7 +69,7 @@ class AttachmentWriter {
 	public async Task InitThreadNo() {
 		var text = Encoding.UTF8.GetBytes($"{this.config.Get().ChangeThreadNoTxtText}");
 		var tasks = SureyomiChanEnviroment.SupportBoards__.Select(x => {
-			var textFileName = SureyomiChanEnviroment.GetStaticString(x, SureyomiChanBoard__.ThreadNoFileName);
+			var textFileName = SureyomiChanEnviroment.GetStaticString(x, SureyomiChanBoardItem.ThreadNoFileName);
 			Utils.Logger.Instance.Info($"{textFileName}を初期化");
 			return File.WriteAllBytesAsync(
 				Path.Combine(this.config.Get().PathDwonloadValue, textFileName),
@@ -79,7 +79,7 @@ class AttachmentWriter {
 	}
 
 	public async Task UpdateThreadNo(Models.SureyomiChanResponse response) {
-		var fileName = SureyomiChanEnviroment.GetStaticString(response.BoardId, SureyomiChanBoard__.ThreadNoFileName);
+		var fileName = SureyomiChanEnviroment.GetStaticString(response.BoardId, SureyomiChanBoardItem.ThreadNoFileName);
 		lock(this.lockObj) {
 			if(this.currentThreadId.ContainsKey(fileName)) {
 				if(this.currentThreadId[fileName] == response.ThreadNo) {
@@ -103,7 +103,7 @@ class AttachmentWriter {
 	}
 
 	public async Task DeadThreadNo(Models.SureyomiChanResponse response) {
-		var fileName = SureyomiChanEnviroment.GetStaticString(response.BoardId, SureyomiChanBoard__.ThreadNoFileName);
+		var fileName = SureyomiChanEnviroment.GetStaticString(response.BoardId, SureyomiChanBoardItem.ThreadNoFileName);
 		if(this.currentThreadId.ContainsKey(fileName)) {
 			if(this.currentThreadId[fileName] == response.ThreadNo) {
 				this.currentThreadId.Remove(fileName);
@@ -321,7 +321,7 @@ class AttachmentWriter {
 
 		// 存在しない場合フォルダを作る
 		if(!Directory.Exists(saveRoot)) {
-			Utils.Logger.Instance.Info($"保存フォルダを作成します => {Path.GetDirectoryName(saveRoot)}");
+			Utils.Logger.Instance.Info($"保存フォルダを作成します => {saveRoot}");
 			try {
 				Directory.CreateDirectory(saveRoot);
 			}

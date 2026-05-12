@@ -17,13 +17,11 @@ internal static class SureyomiChanEnviroment {
 		CommandOpen,
 	];
 
-	// 後で名前を返る
 	public static IEnumerable<SureyomiChanBoardId> SupportBoards__ => [
 		SureyomiChanBoardId.FutabaImg,
 		SureyomiChanBoardId.NijiuraChanAimg,
 	];
 
-	//threadNoTxt
 
 	public static int CopyDataTypeCommandArgs => 1;
 
@@ -44,16 +42,16 @@ internal static class SureyomiChanEnviroment {
 		};
 	}
 
-	public static string GetStaticString(SureyomiChanBoardId target, SureyomiChanBoard__ v) {
+	public static string GetStaticString(SureyomiChanBoardId target, SureyomiChanBoardItem v) {
 		return target switch {
 			SureyomiChanBoardId.FutabaImg => v switch {
-				SureyomiChanBoard__.Command => "img",
-				SureyomiChanBoard__.ThreadNoFileName => "threadno.img.txt",
+				SureyomiChanBoardItem.URiCommand => "img",
+				SureyomiChanBoardItem.ThreadNoFileName => "threadno.img.txt",
 				_ => throw new Exception(),
 			},
 			SureyomiChanBoardId.NijiuraChanAimg => v switch {
-				SureyomiChanBoard__.Command => "aimg",
-				SureyomiChanBoard__.ThreadNoFileName => "threadno.aimg.txt",
+				SureyomiChanBoardItem.URiCommand => "aimg",
+				SureyomiChanBoardItem.ThreadNoFileName => "threadno.aimg.txt",
 				_ => throw new Exception(),
 			},
 			_ => throw new Exception(),
@@ -83,8 +81,8 @@ enum SureyomiChanBoardId {
 	NijiuraChanAimg
 }
 
-enum SureyomiChanBoard__ { // TODO:名前考える
-	Command,
+enum SureyomiChanBoardItem {
+	URiCommand,
 	ThreadNoFileName,
 }
 
