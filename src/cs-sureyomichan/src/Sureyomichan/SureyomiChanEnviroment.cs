@@ -17,12 +17,13 @@ internal static class SureyomiChanEnviroment {
 		CommandOpen,
 	];
 
-	public static string BoardImg => "img";
-	public static string BoardAimg => "aimg";
-	public static string[] SupportBoards => [
-		BoardImg,
-		BoardAimg,
+	// 後で名前を返る
+	public static IEnumerable<SureyomiChanBoardId> SupportBoards__ => [
+		SureyomiChanBoardId.FutabaImg,
+		SureyomiChanBoardId.NijiuraChanAimg,
 	];
+
+	//threadNoTxt
 
 	public static int CopyDataTypeCommandArgs => 1;
 
@@ -42,6 +43,23 @@ internal static class SureyomiChanEnviroment {
 			_ => throw new Exception(),
 		};
 	}
+
+	public static string GetStaticString(SureyomiChanBoardId target, SureyomiChanBoard__ v) {
+		return target switch {
+			SureyomiChanBoardId.FutabaImg => v switch {
+				SureyomiChanBoard__.Command => "img",
+				SureyomiChanBoard__.ThreadNoFileName => "threadno.img.txt",
+				_ => throw new Exception(),
+			},
+			SureyomiChanBoardId.NijiuraChanAimg => v switch {
+				SureyomiChanBoard__.Command => "aimg",
+				SureyomiChanBoard__.ThreadNoFileName => "threadno.aimg.txt",
+				_ => throw new Exception(),
+			},
+			_ => throw new Exception(),
+		};
+	}
+
 
 	public static string GetDynamicString(SureyomiChanDynamicItem target, Models.Config config) {
 		return target switch {
@@ -63,6 +81,11 @@ enum SureyomiChanStaticItem {
 enum SureyomiChanBoardId {
 	FutabaImg,
 	NijiuraChanAimg
+}
+
+enum SureyomiChanBoard__ { // TODO:名前考える
+	Command,
+	ThreadNoFileName,
 }
 
 enum SureyomiChanDynamicItem {

@@ -159,6 +159,7 @@ class MainWindowViewModel : BindableBase {
 			Utils.Logger.Instance.Error("メインウインドウハンドルが取得できません");
 		}
 		Utils.Singleton.Instance.StartupSequence.End(hwnd);
+		_ =  this.attachmentWriter.InitThreadNo();
 
 		if(!this.initConfig.Value) {
 			this.Layout.Value = LayoutMode.Config;
@@ -242,10 +243,10 @@ class MainWindowViewModel : BindableBase {
 
 	private void EnqueueErrorMessage(string message) => this.SnackbarMessageQueue.Enqueue(message);
 
-	private bool StartYomiage(string board, int threadId, bool latest) {
+	private bool StartYomiage(SureyomiChanBoardId board, int threadId, bool latest) {
 		var url = board switch {
-			{ } v when v == SureyomiChanEnviroment.BoardImg => Utils.Singleton.Instance.FutabaUrl,
-			{ } v when v == SureyomiChanEnviroment.BoardAimg => Utils.Singleton.Instance.NijiuraChanUrl,
+			{ } v when v == SureyomiChanBoardId.FutabaImg => Utils.Singleton.Instance.FutabaUrl,
+			{ } v when v == SureyomiChanBoardId.NijiuraChanAimg => Utils.Singleton.Instance.NijiuraChanUrl,
 			_ => null,
 		};
 		if(url is { } api) {
