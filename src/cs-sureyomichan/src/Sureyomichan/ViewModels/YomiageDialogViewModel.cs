@@ -343,7 +343,10 @@ internal class YomiageDialogViewModel : BindableBase, IDialogAware {
 
 	private void ProcessYomiage(Models.SureyomiChanResponse current, Models.SureyomiChanResponse? prev, Yomiage yomiage) {
 		if(this.param?.Config.Get() is { } config) {
-			bool isSoudane() => (prev?.Soudane ?? 0) < current.Soudane;
+			bool isSoudane() => prev?.Soudane switch {
+				{ } v when v < current.Soudane => true,
+				_ => false,
+			};
 			bool isOld() => (current.DieTime - current.CurrentTime).TotalMilliseconds < this.param.Config.Get().YomiageOldTime;
 
 			if(current.SupportFeature.IsSupportInspectSoudane && isSoudane()) {

@@ -12,12 +12,13 @@ using System.Threading.Tasks;
 namespace Haru.Kei.SureyomiChan.Models;
 
 class SureyomiChanResponse {
+	public required SureyomiChanBoardId BoardId { get; init; }
 	public required int ThreadNo { get; init; }
-	public required string ThreadNoTxt { get; init; }
 	public required bool IsAlive { get; init; }
 	public required bool IsMaxRes { get; init; }
 	public required DateTime CurrentTime { get; init; }
 	public required DateTime DieTime { get; init; }
+	/// <summary>スレ文に入っているそうだね</summary>
 	public required int Soudane { get; init; }
 	public required IEnumerable<SureyomiChanModel> NewReplies { get; init; }
 	public required ISureyomiChanFeature SupportFeature { get; init; }
@@ -51,13 +52,6 @@ class SureyomiChanModel(
 	public SureyomiChanDeleteType DeleteType { get; } = deleteType;
 
 	public IEnumerable<SureyomiChanImage> Images { get; } = [..images];
-	[Obsolete]
-	public string? ImageFileName { get; } = images.FirstOrDefault()?.ImageFileName;
-	[Obsolete]
-	public string? ImageSource{ get; } = images.FirstOrDefault()?.ImageSource;
-	[Obsolete]
-	public string? ThumbnailSource { get; } = images.FirstOrDefault()?.ThumbnailSource;
-
 	public IEnumerable<Models.Token> Token { get; } = token;
 	public ISureyomiChanInteraction Interaction { get; } = interaction;
 }

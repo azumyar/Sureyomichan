@@ -2,18 +2,15 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Net.Http;
-using System.Net.Mail;
 using System.Reactive.Linq;
 using System.Text;
+using System.Text.Encodings.Web;
 using System.Text.Json;
-using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
-using System.Threading;
+using System.Text.Unicode;
 using System.Threading.Tasks;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using System.Windows.Threading;
 
 namespace Haru.Kei.SureyomiChan.Core; 
 class AttachmentWriter {
@@ -69,23 +66,36 @@ class AttachmentWriter {
 		};
 	}
 
+	public async Task InitThreadNo() {
+		var text = Encoding.UTF8.GetBytes($"{this.config.Get().ChangeThreadNoTxtText}");
+		var tasks = SureyomiChanEnviroment.SupportBoards__.Select(x => {
+			var textFileName = SureyomiChanEnviroment.GetStaticString(x, SureyomiChanBoardItem.ThreadNoFileName);
+			Utils.Logger.Instance.Info($"{textFileName}を初期化");
+			return File.WriteAllBytesAsync(
+				Path.Combine(this.config.Get().PathDwonloadValue, textFileName),
+				text);
+		}).ToArray();
+		await Task.WhenAll(tasks);
+	}
+
 	public async Task UpdateThreadNo(Models.SureyomiChanResponse response) {
+		var fileName = SureyomiChanEnviroment.GetStaticString(response.BoardId, SureyomiChanBoardItem.ThreadNoFileName);
 		lock(this.lockObj) {
-			if(this.currentThreadId.ContainsKey(response.ThreadNoTxt)) {
-				if(this.currentThreadId[response.ThreadNoTxt] == response.ThreadNo) {
+			if(this.currentThreadId.ContainsKey(fileName)) {
+				if(this.currentThreadId[fileName] == response.ThreadNo) {
 					return;
 				} else {
-					this.currentThreadId[response.ThreadNoTxt] = response.ThreadNo;
+					this.currentThreadId[fileName] = response.ThreadNo;
 				}
 			} else {
-				this.currentThreadId.Add(response.ThreadNoTxt, response.ThreadNo);
+				this.currentThreadId.Add(fileName, response.ThreadNo);
 			}
 		}
 
 		if(this.config.Get().SaveThreadNoEnabled) {
-			Utils.Logger.Instance.Info($"{response.ThreadNoTxt}を更新 => {response.ThreadNo}");
+			Utils.Logger.Instance.Info($"{fileName}を更新 => {response.ThreadNo}");
 			await File.WriteAllBytesAsync(
-				Path.Combine(this.config.Get().PathDwonloadValue, response.ThreadNoTxt),
+				Path.Combine(this.config.Get().PathDwonloadValue, fileName),
 				Encoding.UTF8.GetBytes($"{response.ThreadNo}"));
 		} else {
 			await Task.Yield();
@@ -93,9 +103,10 @@ class AttachmentWriter {
 	}
 
 	public async Task DeadThreadNo(Models.SureyomiChanResponse response) {
-		if(this.currentThreadId.ContainsKey(response.ThreadNoTxt)) {
-			if(this.currentThreadId[response.ThreadNoTxt] == response.ThreadNo) {
-				this.currentThreadId.Remove(response.ThreadNoTxt);
+		var fileName = SureyomiChanEnviroment.GetStaticString(response.BoardId, SureyomiChanBoardItem.ThreadNoFileName);
+		if(this.currentThreadId.ContainsKey(fileName)) {
+			if(this.currentThreadId[fileName] == response.ThreadNo) {
+				this.currentThreadId.Remove(fileName);
 			} else {
 				return;
 			}
@@ -104,9 +115,9 @@ class AttachmentWriter {
 		}
 
 		if(this.config.Get().SaveThreadNoEnabled && this.config.Get().ChangeThreadNoTxtEnabled) {
-			Utils.Logger.Instance.Info($"{response.ThreadNoTxt}を更新 => スレ落ち");
+			Utils.Logger.Instance.Info($"{fileName}を更新 => スレ落ち");
 			await File.WriteAllBytesAsync(
-				Path.Combine(this.config.Get().PathDwonloadValue, response.ThreadNoTxt),
+				Path.Combine(this.config.Get().PathDwonloadValue, fileName),
 				Encoding.UTF8.GetBytes($"{this.config.Get().ChangeThreadNoTxtText}"));
 		} else {
 			await Task.Yield();
@@ -295,6 +306,13 @@ class AttachmentWriter {
 			Utils.Logger.Instance.Error("保存フォルダが存在しません");
 		}
 	}
+	private string? GetSaveDirectoryWithCreate(Models.SureyomiChanResponse res) {
+		if(res.NewReplies?.FirstOrDefault() is { } v) {
+			return GetSaveDirectoryWithCreate(v);
+		}
+		return null;
+	}
+
 	private string GetSaveDirectoryWithCreate(Models.SureyomiChanModel model) {
 		var saveRoot = Utils.Util.GetSaveDirectoryPath(
 			this.config.Get(),
@@ -303,7 +321,7 @@ class AttachmentWriter {
 
 		// 存在しない場合フォルダを作る
 		if(!Directory.Exists(saveRoot)) {
-			Utils.Logger.Instance.Info($"保存フォルダを作成します => {Path.GetDirectoryName(saveRoot)}");
+			Utils.Logger.Instance.Info($"保存フォルダを作成します => {saveRoot}");
 			try {
 				Directory.CreateDirectory(saveRoot);
 			}

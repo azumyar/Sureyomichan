@@ -11,7 +11,6 @@ partial class SureyomiChanApiLooper {
 		private readonly IConfigProxy config;
 		private readonly string urlString;
 		private readonly int threadNo;
-		private readonly string threadNoTxt = "threadno.aimg.txt";
 		private readonly WebView2Proxy webView;
 
 		public NijiuraChanApiWorker(string urlString, int threadNo, IConfigProxy config, WebView2Proxy webView) {
@@ -42,8 +41,8 @@ partial class SureyomiChanApiLooper {
 					}
 
 					return new Models.SureyomiChanResponse() {
+						BoardId = SureyomiChanBoardId.NijiuraChanAimg,
 						ThreadNo = threadNo,
-						ThreadNoTxt = threadNoTxt,
 						IsAlive = true,
 						IsMaxRes = SureyomiChanEnviroment.NijiuraChanMaxRes <= (replies.LastOrDefault()?.Number ?? 0),
 						Soudane = 0,
@@ -63,7 +62,6 @@ partial class SureyomiChanApiLooper {
 		private readonly IConfigProxy config;
 		private readonly string urlString;
 		private readonly int threadNo;
-		private readonly string threadNoTxt = "threadno.aimg.txt";
 		private readonly WebView2Proxy webView;
 
 		public NijiuraChanInternalApiWorker(string urlString, int threadNo, IConfigProxy config, WebView2Proxy webView) {
@@ -99,8 +97,8 @@ partial class SureyomiChanApiLooper {
 						}
 
 						return new Models.SureyomiChanResponse() {
+							BoardId = SureyomiChanBoardId.NijiuraChanAimg,
 							ThreadNo = threadNo,
-							ThreadNoTxt = threadNoTxt,
 							IsAlive = !o?.Data?.Thread.IsArchived ?? true,
 							IsMaxRes = SureyomiChanEnviroment.NijiuraChanMaxRes <= (replies.LastOrDefault()?.NumberInThread ?? 0),
 							Soudane = o?.Data?.Thread.SoudaneCount ?? 0,

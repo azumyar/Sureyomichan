@@ -137,7 +137,12 @@ static class Util {
 		}
 	}
 
-	public static (string Board, int ThreadNo, bool IsLatest)? ParseCommandLine(string cmd) {
+	public static (SureyomiChanBoardId Board, int ThreadNo, bool IsLatest)? ParseCommandLine(string cmd) {
+		static (SureyomiChanBoardId, int, bool)? error(string cmd) {
+			Logger.Instance.Info($"コマンドラインは不正でした => {cmd}");
+			return null;
+		}
+
 		var span = cmd.AsSpan();
 		// argv[0]を削除
 		if(span[0] == '\"') {
@@ -163,22 +168,25 @@ static class Util {
 		var uri = new Uri(span.ToString());
 		if(uri.Scheme == SureyomiChanEnviroment.Scheme) {
 			if(!SureyomiChanEnviroment.SupportCommands.Where(x => x == uri.Host).Any()) {
-				goto error;
+				return error(span.ToString());
 			}
 
 			if(uri.Host == SureyomiChanEnviroment.CommandOpen) {
 				var p = uri.LocalPath.Split("/");
 				if(p.Length == 3) {
-					var board = "";
+					var board = SureyomiChanEnviroment.SupportBoards__.Select<SureyomiChanBoardId, SureyomiChanBoardId?>(
+						x => (SureyomiChanEnviroment.GetStaticString(x, SureyomiChanBoardItem.URiCommand) == p[1]) switch {
+							true => x,
+							false => null
+						}).FirstOrDefault(x => x != null);
+					if(board is null) {
+						return error(span.ToString());
+					}
 					var no = 0;
 					var latest = false;
-					if(!SureyomiChanEnviroment.SupportBoards.Where(x => x == p[1]).Any()) {
-						goto error;
-					}
-					board = p[1];
 
 					if(!uint.TryParse(p[2], out var uno)) {
-						goto error;
+						return error(span.ToString());
 					}
 					no = (int)uno;
 					if(1 < uri.Query.Length) {
@@ -189,13 +197,11 @@ static class Util {
 						}
 					}
 					Logger.Instance.Info($"コマンドラインを解析しました => {board}, {no}, {latest}");
-					return (board, no, latest);
+					return (board.Value, no, latest);
 				}
 			}
 		}
-	error:
-		Logger.Instance.Info($"コマンドラインは不正でした => {span}");
-		return null;
+		return error(span.ToString());
 	}
 
 	public static IEnumerable<Models.Token> Tokenize(string text) {
