@@ -105,7 +105,7 @@ awebp → gif
 あいもげのレス削除機能自体は後日実装予定です。
 
 
-## Chrome拡張連携
+## Chrome拡張連携 {#chrome-extensions}
 Chrome拡張と連携する設定。  
 
 ![-](../public/images/usage/setting_050_chromeSet.png)
