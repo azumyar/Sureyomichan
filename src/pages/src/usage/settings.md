@@ -10,7 +10,7 @@ next: false
 ## 画像保存
 画像保存の各項目について説明します。  
 
-![-](../public/images/usage/setting_010_imageSet.png)
+![-](/images/usage/setting_010_imageSet.png)
 
 ### 保存フォルダ
 スレッドの添付ファイルを保存する先を指定します。  
@@ -56,7 +56,7 @@ awebp → gif
 ## 読み上げ
 読み上げに関する各項目について説明します。  
 
-![-](../public/images/usage/setting_020_readingSet.png)
+![-](/images/usage/setting_020_readingSet.png)
 
 ### 読み上げ開始
 スレッドの読み上げ開始時の動作を指定します。  
@@ -88,7 +88,7 @@ awebp → gif
 ## ふたば
 ふたば(img)でのみ使用する項目。  
 
-![-](../public/images/usage/setting_030_imgSet.png)
+![-](/images/usage/setting_030_imgSet.png)
 
 ### 削除パスワード
 読み上げたあとに対象のレスを削除する時に使います。   
@@ -97,7 +97,7 @@ awebp → gif
 ## aimg
 あいもげでのみ使用する項目。  
 
-![-](../public/images/usage/setting_040_aimgSet.png)
+![-](/images/usage/setting_040_aimgSet.png)
 
 ### 削除パスワード
 読み上げたあとに対象のレスを削除する時に使います。   
@@ -105,10 +105,10 @@ awebp → gif
 あいもげのレス削除機能自体は後日実装予定です。
 
 
-## Chrome拡張連携
+## Chrome拡張連携 {#chrome-extensions}
 Chrome拡張と連携する設定。  
 
-![-](../public/images/usage/setting_050_chromeSet.png)
+![-](/images/usage/setting_050_chromeSet.png)
 
 ### URLスキーマ登録
 スレ詠みちゃんChrome拡張と連携するためのURLスキーマをシステムに登録します。
@@ -118,11 +118,11 @@ Chrome拡張と連携する設定。
 「URLスキーマ登録」をクリックすると「このアプリがデバイスに変更を加えることを許可しますか」と画面に表示されるので  
 「はい」をクリックします。
 
-![-](../public/images/usage/setting_055_schema_set01.png)
+![-](/images/usage/setting_055_schema_set01.png)
 
 登録が成功すると画面下部に「登録成功」の文字が表示されます。  
 
-![-](../public/images/usage/setting_055_schema_set02.png)
+![-](/images/usage/setting_055_schema_set02.png)
 
 ### URLスキーマ削除
 システムから登録したURLスキーマを削除します。  
@@ -132,7 +132,7 @@ Chrome拡張と連携する設定。
 ## そのほか
 その他の設定項目。
 
-![-](../public/images/usage/setting_060_anotherSet.png)
+![-](/images/usage/setting_060_anotherSet.png)
 
 ### wavファイル再生デバイス
 読み上げの設定でwavファイルを指定した場合に再生するデバイスを選択できます。  
@@ -140,7 +140,7 @@ Chrome拡張と連携する設定。
 
 ## 開発向け設定
 
-![-](../public/images/usage/setting_070_devlopSet.png)
+![-](/images/usage/setting_070_devlopSet.png)
 
 ### tegaki_save連携フォルダ
 
