@@ -11,13 +11,13 @@ next: false
 左メニュー内の設定画面説明から各種設定をお願いします。  
 設定後は保存ボタンをクリックして設定を保存してください。
 
-![-](../public/images/usage/usage_010_initStart.png)
+![-](/images/usage/usage_010_initStart.png)
 
 ## URLを指定して読み上げる
 画面内の「スレッドのURLを入力」欄にimg/aimgのスレッドURLを入力してください。  
 読み上げ開始前なら歯車マーク(⚙)から設定を変更できます。
 
-![-](../public/images/usage/usage_020_readingStart.png)  
+![-](/images/usage/usage_020_readingStart.png)  
 
 ### 最初から読み上げ
 スレッドを最初から全てのレスを読み上げ開始します。  
@@ -60,18 +60,18 @@ img/aimgのスレッドを開いた際、ブラウザの画面右下に読み上
 最終レスから開始ボタンで最終レスから読み上げを開始します。  
 このボタンは＞で閉じることが出来ます。  
 
-![-](../public/images/usage/usage_030_urlSchema.png)
+![-](/images/usage/usage_030_urlSchema.png)
 
 ## 読み上げ開始後の画面について
 読み上げ開始後、スレの内容のウィンドウと現在読み上げをしているウィンドウが表示されます。  
 
 ### スレの内容のウィンドウ
 
-![-](../public/images/usage/usage_021_readingWindow.png)  
+![-](/images/usage/usage_021_readingWindow.png)  
 
 右下のハンバーガーメニューをクリックると以下のメニューが現れます。  
 
-![-](../public/images/usage/usage_022_readingWindowMenu.png)  
+![-](/images/usage/usage_022_readingWindowMenu.png)  
 
 ・スレッド読込  
 　スレッドの読み込みのONとOFFが出来ます。デフォルトONです。  
@@ -87,4 +87,4 @@ img/aimgのスレッドを開いた際、ブラウザの画面右下に読み上
 追加で読み上げたいスレッドがある場合は最小化されているウィンドウを開いてURLを入力してください。  
 読み上げは複数スレッドに対応しています。  
 
-![-](../public/images/usage/usage_040_readingurlwindow.png)
+![-](/images/usage/usage_040_readingurlwindow.png)
