@@ -39,11 +39,10 @@ jobs:
     - name: Update ci.cs
       run: |
         pushd src/cs-sureyomichan/src/Sureyomichan
-        echo "namespace Haru.Kei.SureyomiChan;" > SureyomiChanEnviroment.ci.cs.cs
-        echo "internal partial class SureyomiChanEnviroment {" >> SureyomiChanEnviroment.ci.cs.cs
-        echo "public static string Build { get; } = "${{github.ref_name}}";" >> SureyomiChanEnviroment.ci.cs
+        echo "namespace Haru.Kei.SureyomiChan;" > SureyomiChanEnviroment.ci.cs
+        echo "internal partial class SureyomiChanEnviroment {" >> SureyomiChanEnviroment.ci.cs
+        echo "public static string Build { get; } = \"${{github.ref_name}}\";" >> SureyomiChanEnviroment.ci.cs
         echo "}" >> SureyomiChanEnviroment.ci.cs
-        echo ./SureyomiChanEnviroment.ci.cs.cs
         popd
       shell: bash # powershellの構文よくわからない
 
