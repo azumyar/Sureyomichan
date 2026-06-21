@@ -197,6 +197,7 @@
                                                 <Viewbox
                                                     Grid.Column="0"
                                                     Grid.Row="1"
+                                                    Visibility="{Binding ImageVisibility.Value, Mode=OneWay}"
                                                     Stretch="UniformToFill"
                                                     MaxWidth="200"
                                                     Margin="0"

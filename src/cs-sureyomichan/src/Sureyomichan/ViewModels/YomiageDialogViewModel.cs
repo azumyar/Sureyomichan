@@ -221,6 +221,7 @@ internal class YomiageDialogViewModel : BindableBase, IDialogAware {
 
 		Utils.Logger.Instance.Info($"読み上げを開始します => {SureyomiChanEnviroment.GetStaticString(this.param.Url.BoardId)}, {this.param.ThreadNo}");
 		var yomiage = new Core.Yomiage(this.param.Bouyomi, this.param.Config);
+		var prevResponse = default(Models.SureyomiChanResponse);
 		this.ThreadDieText.Value = "";
 		try {
 			api.Value = new Core.SureyomiChanApiLooper(
@@ -230,8 +231,10 @@ internal class YomiageDialogViewModel : BindableBase, IDialogAware {
 				this.uiMsgDispatcher,
 				this.param.Config,
 				this.param.WebView);
-			yomiage.SpeakStarted();
-
+			{
+				var c = this.param.Config.Get();
+				yomiage.SpeakFromConfig(nameof(c.YomiageStarted), c.YomiageStarted);
+			}
 			api.Value.Run(
 				callBack: async (x, skip) => {
 					void yomiSpeak(string m) {
@@ -239,93 +242,79 @@ internal class YomiageDialogViewModel : BindableBase, IDialogAware {
 							yomiage.EnqueueSpeak(m);
 						}
 					}
-					void yomiImage(Models.AttachmentObject attachment) {
-						if(!skip && attachment.IsUpdatedTegakiPng) {
+					void yomiImage(IEnumerable<Models.AttachmentObject> attachments) {
+						if(!skip && attachments.Any(x => x.IsUpdatedTegakiPng)) {
 							yomiage.SaveImage();
 						}
 					}
-					bool isOld() => (x.DieTime - x.CurrentTime).TotalMilliseconds < this.param.Config.Get().YomiageOldTime;
 					Task<Models.NgResult> delay(int milisec) => Task.Run(async () => {
 						await Task.Delay(milisec);
 						return Models.NgResult.Default;
 					});
 
-					var speak = new List<Models.SureyomiChanModel>();
-					var disp = new List<BindableSureyomi>();
-					var images = new List<byte[]>();
-					foreach(var it in x.NewReplies) {
-						var attachment = default((bool IsSucessed, Models.AttachmentObject? Attachment)?);
-						var dHash = default(Models.DifferenceHash?);
-						if(it.ImageFileName is { }) {
-							try {
-								var di = await it.Interaction.DownloadImage();
-								if(di.ImageFileBytes is { }) {
-									dHash = Models.DifferenceHash.From(it.ImageFileName, di.ImageFileBytes);
+					try {
+						var speak = new List<Models.SureyomiChanModel>();
+						var disp = new List<BindableSureyomi>();
+						var images = new List<byte[]>();
+						foreach(var it in x.NewReplies) {
+							var attachments = await it.Interaction.DownloadImages();
+							var isNg = false;
+							var body = it.ToSpeakText();
+							var dHash = attachments.FirstOrDefault()?.Hash;
+							foreach(var it2 in await Task.WhenAll(
+								safeIsNgFromBody(x.ThreadNo, it, dHash),
+								safeIsNgFromImage(dHash),
+								delay(500))) {
+								isNg |= it2.IsNg;
+								if(0 < it2.ReplaceBody.Length) {
+									body = it2.ReplaceBody;
 								}
-								attachment = (true, di);
 							}
-							catch(Exceptions.SureyomiChanException ex) {
-								Utils.Logger.Instance.Error(ex);
-								attachment = (false, null);
+
+							if(!isNg) {
+								yomiSpeak(
+									string.Join('\n',
+										body.Replace("\r", "")
+											.Split("\n")
+											.Select(x => x switch {
+												{ } v when v.FirstOrDefault() == '>' => $"{this.param.Config.Get().AppendSpecialTag}{x}",
+												{ } v => v,
+												_ => "",
+											}))
+									);
+
+								if(attachments.Count() != 0) {
+									yomiImage(attachments);
+									await this.param.AttachmentWriter.Save(it, attachments);
+								}
+								if(this.param.Config.Get().IsEnabledUpFile) {
+									_ = this.param.AttachmentWriter.DownloadShio(it);
+								}
 							}
+							foreach(var ao in attachments) {
+								if(ao.ImageFileBytes is { }) {
+									Utils.ImageUtil.ImageStore.Insert(
+										SureyomiChanEnviroment.GetStaticString(this.param.Url.BoardId),
+										this.param.ThreadNo,
+										ao.ImageName,
+										ao.ImageFileBytes);
+								}
+							}
+							disp.Add(new(it, attachments, isNg));
+							this.param.Store.Add(this.param.ThreadNo, it, isNg, attachments);
 						}
 
-						var isNg = false;
-						var body = it.ToSpeakText();
-						foreach(var it2 in await Task.WhenAll(
-							safeIsNgFromBody(x.ThreadNo, it, dHash),
-							safeIsNgFromImage(dHash),
-							delay(500))) {
-							isNg |= it2.IsNg;
-							if(0 < it2.ReplaceBody.Length) {
-								body = it2.ReplaceBody;
-							}
+						await this.param.AttachmentWriter.UpdateThreadNo(x);
+						this.ProcessYomiage(x, prevResponse, yomiage);
+						if(x.SupportFeature.IsSupportThreadDie && !x.IsAlive) {
+							await this.param.AttachmentWriter.DeadThreadNo(x);
 						}
 
-						if(!isNg) {
-							yomiSpeak(
-								string.Join('\n',
-									body.Replace("\r", "")
-										.Split("\n")
-										.Select(x => x switch {
-											{ } v when v.FirstOrDefault() == '>' => $"{this.param.Config.Get().AppendSpecialTag}{x}",
-											{ } v => v,
-											_ => "",
-										}))
-								);
-							
-							if(attachment?.Attachment is { } att) {
-								yomiImage(att);
-								await this.param.AttachmentWriter.Save(it, att);
-							}
-							if(this.param.Config.Get().IsEnabledUpFile) {
-								_ = this.param.AttachmentWriter.DownloadShio(it);
-							}
-						}
-						if(attachment?.Attachment is { } ao && ao.ImageFileBytes is { }) {
-							Utils.ImageUtil.ImageStore.Insert(
-								SureyomiChanEnviroment.GetStaticString(this.param.Url.BoardId),
-								this.param.ThreadNo,
-								ao.ImageName,
-								ao.ImageFileBytes);
-						}
-						disp.Add(new(it, attachment, dHash?.Value, isNg));
-						this.param.Store.Add(this.param.ThreadNo, it, isNg, dHash?.Value);
+						uiMsgDispatcher.DispatchNewRiplies(disp);
 					}
-
-					await this.param.AttachmentWriter.UpdateThreadNo(x);
-					if(x.SupportFeature.IsSupportThreadOld && isOld()) {
-						yomiage.SpeakOld();
+					finally {
+						prevResponse = x;
 					}
-					if(x.IsMaxRes) {
-						yomiage.SpeakMaxRes();
-					}
-					if(x.SupportFeature.IsSupportThreadDie && !x.IsAlive) {
-						yomiage.SpeakDead();
-						await this.param.AttachmentWriter.DeadThreadNo(x);
-					}
-
-					uiMsgDispatcher.DispatchNewRiplies(disp);
 				},
 				skipToLast: isLatest,
 				latestResNo: this.Replies.LastOrDefault()?.Model.No);
@@ -350,6 +339,29 @@ internal class YomiageDialogViewModel : BindableBase, IDialogAware {
 
 		api.Value.Dispose();
 		api.Value = null;
+	}
+
+	private void ProcessYomiage(Models.SureyomiChanResponse current, Models.SureyomiChanResponse? prev, Yomiage yomiage) {
+		if(this.param?.Config.Get() is { } config) {
+			bool isSoudane() => prev?.Soudane switch {
+				{ } v when v < current.Soudane => true,
+				_ => false,
+			};
+			bool isOld() => (current.DieTime - current.CurrentTime).TotalMilliseconds < this.param.Config.Get().YomiageOldTime;
+
+			if(current.SupportFeature.IsSupportInspectSoudane && isSoudane()) {
+				yomiage.SpeakFromConfig(nameof(config.YomiageSoudane), config.YomiageSoudane);
+			}
+			if(current.SupportFeature.IsSupportThreadOld && isOld()) {
+				yomiage.SpeakFromConfig(nameof(config.YomiageOld), config.YomiageOld);
+			}
+			if(current.IsMaxRes) {
+				yomiage.SpeakFromConfig(nameof(config.YomiageMaxRes), config.YomiageMaxRes);
+			}
+			if(current.SupportFeature.IsSupportThreadDie && !current.IsAlive) {
+				yomiage.SpeakFromConfig(nameof(config.YomiageDie), config.YomiageDie);
+			}
+		}
 	}
 
 	private void EnqueueErrorMessage(string message) => this.SnackbarMessageQueue.Enqueue(message);

@@ -335,11 +335,7 @@ internal class ImageUtil {
 						} * 100
 					});
 				}
-				mg.Quantize(new QuantizeSettings() {
-					Colors = 256
-				});
-				mg.Optimize();
-				mg.Write(Path.Combine(rootPath, $"{outFileNameWithoutExt}.gif"));
+				WriteGifFile(mg, Path.Combine(rootPath, $"{outFileNameWithoutExt}.gif"));
 				return true;
 			} else {
 				return false;
@@ -376,11 +372,7 @@ internal class ImageUtil {
 					mg[img.Index].AnimationIterations = 0;
 					mg[img.Index].AnimationDelay = (uint)((double)kf.ElementAt(img.Index) / 10 + 0.5);
 				}
-				mg.Quantize(new QuantizeSettings() {
-					Colors = 256
-				});
-				mg.Optimize();
-				mg.Write(Path.Combine(rootPath, $"{outFileNameWithoutExt}.gif"));
+				WriteGifFile(mg, Path.Combine(rootPath, $"{outFileNameWithoutExt}.gif"));
 				return true;
 			} else {
 				using var fs = new FileStream(
@@ -395,6 +387,16 @@ internal class ImageUtil {
 		catch(Exception ex) {
 			throw new Exceptions.ImageConvertException("AWEBP2GIFでエラー", ex);
 		}
+	}
+
+	private static void WriteGifFile(MagickImageCollection mg, string outFilePath) {
+		mg.Quantize(new QuantizeSettings() {
+			Colors = 256
+		});
+		// OBSのイメージソースが最適化フォーマットのGIFを意図した描画をしないので最適化しない
+		// 32.1.1
+		// mg.Optimize();
+		mg.Write(outFilePath);
 	}
 
 	private static IEnumerable<int> GetAwebpKeyFrame(byte[] image) {
