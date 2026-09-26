@@ -486,14 +486,5 @@ internal abstract class GenericsYomiageBehavior<T> : IYomiageBehavior {
 }
 
 internal class PollYomiageBehavior : GenericsYomiageBehavior<Models.NijiuraChanPoll> {
-	protected override Models.YomiageConfig To(Models.NijiuraChanPoll nativeObject, Models.Config config) {
-		/*
-		if(config.po)
-		*/
-		return new() {
-			Method = Models.YomiageConfig.YomiageMethodText,
-			File = "",
-			Text = "投票ですよ",
-		};
-	}
+	protected override Models.YomiageConfig To(Models.NijiuraChanPoll nativeObject, Models.Config config) => config.YomiagePoll;
 }
