@@ -67,9 +67,9 @@
                             Background="{TemplateBinding Background}"
                             BorderBrush="{TemplateBinding BorderBrush}"
                             BorderThickness="{TemplateBinding BorderThickness}"
-                            ClipToBounds="False"
+                            ClipToBounds="True"
                             SnapsToDevicePixels="true">
-                            <ItemsPresenter ClipToBounds="False" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
+                            <ItemsPresenter ClipToBounds="True" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
                         </Border>
                     </ControlTemplate>
 
@@ -153,7 +153,7 @@
                                         Padding="16,8,16,8"
                                         Background="{DynamicResource PrimaryHueLightBrush}"
                                         Foreground="{DynamicResource PrimaryHueLightForegroundBrush}">
-                                        <Grid>
+                                        <Grid x:Name="__cardContent">
                                             <Grid.RowDefinitions>
                                                 <RowDefinition Height="Auto" />
                                                 <RowDefinition Height="8" />
@@ -231,7 +231,7 @@
                                             </Grid>
                                             <Grid Grid.Row="2">
                                                 <Grid.ColumnDefinitions>
-                                                    <ColumnDefinition Width="Auto" />
+                                                    <ColumnDefinition Width="Auto" MaxWidth="200" />
                                                     <ColumnDefinition Width="*" />
                                                 </Grid.ColumnDefinitions>
                                                 <Grid.RowDefinitions>
@@ -275,6 +275,8 @@
                                                 <Grid
                                                     Grid.Column="1"
                                                     Grid.Row="0" Grid.RowSpan="2"                                                    
+                                                    HorizontalAlignment="Stretch"
+                                                    MinWidth="128"
                                                     >
                                                     <Grid.RowDefinitions>
                                                         <RowDefinition Height="Auto" />
@@ -337,6 +339,7 @@
                                                     Grid.Column="0" Grid.ColumnSpan="2"
                                                     Grid.Row="2"
                                                     Style="{StaticResource ContentListBox}"
+                                                    Width="{Binding ActualWidth, Mode=OneWay, ElementName=__cardContent}"
                                                     Visibility="{Binding ImageVisibility.Value, Mode=OneWay}"
                                                     ItemsSource="{Binding SubImages}">
                                                     <ListBox.ItemsPanel>
