@@ -1,3 +1,4 @@
+const ID_SUREYOMI_ROOT = "__sureyomi_root";
 const tegakiStorage = {
     openTegakiContentForStart: true,
 };
@@ -68,9 +69,19 @@ function createToolBoxContainer() {
 }
 
 
-(async() => {
+function isRun() {
+    const url = window.location.href;
+    let isThread = false;
+    isThread ||= 0 < url.indexOf("nijiurachan.net/b/aimg/thread/");
+    isThread ||= 0 < url.indexOf("nijiurachan.net/mix/aimg/thread/");
+
+    return isThread;
+}
+
+async function initUi() {
     function createSureyomichanControl2(tegakiStorage, getSureyomichanUrl) {
         const container = document.createElement("div");
+        container.id = ID_SUREYOMI_ROOT;
         container.classList.add("__sureyomi_start-button_root");
 
         const container2 = document.createElement("div");
@@ -80,8 +91,8 @@ function createToolBoxContainer() {
         button.classList.add("desktop-thread-reply-fab");
         button.classList.add("__sureyomi_start-button");
 
-        const svg = document.createElementNS("http://www.w3.org/2000/svg","svg");
-        const path = document.createElementNS("http://www.w3.org/2000/svg","path");
+        const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+        const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
         svg.setAttribute("viewBox", "0 0 1024.00 1024.00");
         path.setAttribute("fill", "#ffffff");
         path.setAttribute("stroke-linejoin", "round");
@@ -123,8 +134,8 @@ function createToolBoxContainer() {
     function updateButtonDataSet() {
         const desktop = document.body.querySelector(".desktop-app");
         const sureyomi = targetNode.querySelector(".__sureyomi_start-button_root");
-        if(desktop) {
-            if(desktop.dataset.replyButtonFlow) {
+        if (desktop) {
+            if (desktop.dataset.replyButtonFlow) {
                 sureyomi.dataset.layoutType = 2; // TODO: マジックナンバー
             } else {
                 sureyomi.dataset.layoutType = 1;// TODO: マジックナンバー
@@ -136,7 +147,7 @@ function createToolBoxContainer() {
 
     function tryCreateBottomButton() {
         const elm = document.body.querySelector(`.__sureyomi_start-button_root`);
-        if(elm) {
+        if (elm) {
             return elm;
         }
 
@@ -152,13 +163,13 @@ function createToolBoxContainer() {
     function init(appRoot, observer) {
         function act(appRoot) {
             const elm = appRoot.querySelector("div");
-            if(!elm) {
+            if (!elm) {
                 return;
             }
 
             updateButtonDataSet();
 
-            if(!elm.classList.contains("desktop-app")) {
+            if (!elm.classList.contains("desktop-app")) {
                 return;
             }
             new MutationObserver((_) => {
@@ -171,7 +182,7 @@ function createToolBoxContainer() {
         }
 
         const root = (appRoot) ? appRoot : document.getElementById("app-root");
-        if(!root) {
+        if (!root) {
             return;
         }
         // app-rootが作られたので初期設定をする
@@ -192,7 +203,7 @@ function createToolBoxContainer() {
     targetNode.classList.add("__sureyomi_hook");
 
     const appRoot = document.getElementById("app-root");
-    if(appRoot) {
+    if (appRoot) {
         init(appRoot, null);
     } else {
         new MutationObserver((_, observer) => {
@@ -202,5 +213,39 @@ function createToolBoxContainer() {
             {
                 childList: true,
             });
+    }
+}
+
+
+(async () => {
+    // SPAになっているのでtitleの変更検知でURLが変わったものとする
+    const titleElement = document.querySelector("title");
+    if(titleElement) {
+        new MutationObserver((mutationsList) => {
+            for(const it of mutationsList) {
+                if(it.type === "childList") {
+                    const root = document.getElementById(ID_SUREYOMI_ROOT);
+                    if(isRun()) {
+                        if(root) {
+                            root.style.visibility = "visible";
+                        } else {
+                            initUi();
+                        }
+                    } else {
+                        if(root) {
+                            root.style.visibility = "hidden";
+                        }
+                    }
+                }
+            }
+        }).observe(titleElement, {
+            childList: true,
+            subtree: true,
+            characterData: true
+        });
+    }
+
+    if(isRun()) {
+        initUi();
     }
 })();

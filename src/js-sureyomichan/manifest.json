@@ -30,8 +30,7 @@
     },
     {
       "matches": [
-        "https://nijiurachan.net/b/aimg/thread/*",
-        "https://nijiurachan.net/mix/aimg/thread/*"
+        "https://nijiurachan.net/*"
       ],
       "js": [
         "js/nijiurachan.js"
